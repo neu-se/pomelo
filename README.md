@@ -1,2 +1,2 @@
-# pomelo
-Support for fuzzing parameterized JUnit tests
+# Pomelo
+Support for fuzzing parameterized JUnit tests.
