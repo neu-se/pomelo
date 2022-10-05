@@ -8,7 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build and install with maven
-        run: mvn install
+        run: mvn install && mvn -f pomelo-examples install
   deploy:
     runs-on: self-hosted
     env:
