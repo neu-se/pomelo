@@ -1,0 +1,16 @@
+name: Run tests
+on: [ push, pull_request ]
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build and test
+        uses: ./.github/actions/build
+        with:
+          skip_tests: false
+      - name: Run examples
+        uses: ./.github/actions/build
+        with:
+          skip_tests: false
+          project: pomelo-examples
