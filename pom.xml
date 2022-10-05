@@ -31,6 +31,7 @@
     <modules>
         <module>pomelo-maven-plugin</module>
         <module>pomelo-maven-lifecycle</module>
+        <module>pomelo-listener</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

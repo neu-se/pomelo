@@ -2,6 +2,7 @@ package edu.neu.ccs.prl.pomelo;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -13,5 +14,17 @@ public class MethodParamTest {
         if (param1 == 42 && param2) {
             throw new IllegalStateException();
         }
+    }
+
+    @Test
+    @Parameters({"false"})
+    public void test(Object param2) {
+        Assume.assumeTrue(param2 != null);
+    }
+
+    @Test
+    @Parameters({"false"})
+    public void test(boolean param2) {
+        Assume.assumeFalse(param2);
     }
 }

@@ -8,14 +8,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public enum MavenTestPlugin {
+public enum MavenTestPluginType {
     SUREFIRE("maven-surefire-plugin"),
     FAILSAFE("maven-failsafe-plugin");
     private static final String MAVEN_PLUGINS_GROUP_ID = "org.apache.maven.plugins";
 
     private final String artifactId;
 
-    MavenTestPlugin(String artifactId) {
+    MavenTestPluginType(String artifactId) {
         this.artifactId = artifactId;
     }
 

@@ -9,8 +9,8 @@ jobs:
         uses: ./.github/actions/build
         with:
           skip_tests: false
-      - name: Run examples
-        uses: ./.github/actions/build
-        with:
-          skip_tests: false
-          project: pomelo-examples
+      - name: Scan examples
+        run:
+          mvn -f pomelo-examples install -Dpomelo.phase=scan
+          cat pomelo-examples/target/pomelo-scan.txt
+        shell: bash
