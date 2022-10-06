@@ -1,6 +1,6 @@
 package edu.neu.ccs.prl.pomelo;
 
-final class TestRecord {
+public final class TestRecord {
     private final String project;
     private final String plugin;
     private final String execution;
@@ -10,8 +10,8 @@ final class TestRecord {
     private boolean failed;
     private boolean ambiguous;
 
-    TestRecord(String project, String plugin, String execution, String testClassName, String testMethodName,
-               String runnerClassName, boolean failed, boolean ambiguous) {
+    public TestRecord(String project, String plugin, String execution, String testClassName, String testMethodName,
+                      String runnerClassName, boolean failed, boolean ambiguous) {
         if (project == null || plugin == null || execution == null || testClassName == null || testMethodName == null ||
                 runnerClassName == null) {
             throw new NullPointerException();
@@ -67,20 +67,6 @@ final class TestRecord {
     }
 
     @Override
-    public String toString() {
-        return "TestRecord{" +
-                "project='" + project + '\'' +
-                ", plugin='" + plugin + '\'' +
-                ", execution='" + execution + '\'' +
-                ", testClassName='" + testClassName + '\'' +
-                ", testMethodName='" + testMethodName + '\'' +
-                ", runnerClassName='" + runnerClassName + '\'' +
-                ", failed=" + failed +
-                ", ambiguous=" + ambiguous +
-                '}';
-    }
-
-    @Override
     public int hashCode() {
         int result = project.hashCode();
         result = 31 * result + plugin.hashCode();
@@ -115,5 +101,28 @@ final class TestRecord {
             return false;
         }
         return runnerClassName.equals(that.runnerClassName);
+    }
+
+    @Override
+    public String toString() {
+        return "TestRecord{" +
+                "project='" + project + '\'' +
+                ", plugin='" + plugin + '\'' +
+                ", execution='" + execution + '\'' +
+                ", testClassName='" + testClassName + '\'' +
+                ", testMethodName='" + testMethodName + '\'' +
+                ", runnerClassName='" + runnerClassName + '\'' +
+                ", failed=" + failed +
+                ", ambiguous=" + ambiguous +
+                '}';
+    }
+
+    public String toCsvRow() {
+        return String.format("%s,%s,%s,%s,%s,%s,%s,%s", project, plugin, execution, testClassName,
+                             testMethodName, runnerClassName, failed, ambiguous);
+    }
+
+    public static String getCsvHeader() {
+        return "project,plugin,execution,test_class,test_method,runner,failed,ambiguous";
     }
 }

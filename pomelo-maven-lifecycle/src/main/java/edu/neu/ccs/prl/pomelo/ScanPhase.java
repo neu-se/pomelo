@@ -10,6 +10,8 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Collections;
 
 public enum ScanPhase {
     INSTANCE;
@@ -41,7 +43,9 @@ public enum ScanPhase {
         }
         System.out.println("Writing Pomelo scan report to: " + report);
         try {
-            return FileUtil.ensureNew(report);
+            FileUtil.ensureNew(report);
+            Files.write(report.toPath(), Collections.singletonList(TestRecord.getCsvHeader()));
+            return report;
         } catch (IOException e) {
             throw new MavenExecutionException("Failed to prepare pomelo.scan.report file",
                                               session.getRequest().getPom());
@@ -63,7 +67,7 @@ public enum ScanPhase {
         Xpp3Dom properties = ensureChild(configuration, "properties");
         Xpp3Dom property = new Xpp3Dom("property");
         property.addChild(makeNode("name", "listener"));
-        property.addChild(makeNode("value", "edu.neu.ccs.prl.pomelo.PomeloJUnitListener"));
+        property.addChild(makeNode("value", PomeloJUnitListener.class.getName()));
         properties.addChild(property);
     }
 

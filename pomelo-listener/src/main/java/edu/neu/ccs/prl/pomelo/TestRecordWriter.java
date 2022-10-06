@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
+import java.util.Collections;
 import java.util.Set;
 
 class TestRecordWriter {
@@ -24,16 +27,11 @@ class TestRecordWriter {
     }
 
     public void append(TestRecord record) throws IOException {
-        append(String.format("%s%n", record));
-    }
-
-    private void append(String data) throws IOException {
         try (RandomAccessFile accessFile = new RandomAccessFile(file, "rw")) {
             try (FileChannel channel = accessFile.getChannel()) {
                 FileLock lock = channel.lock();
                 try {
-                    accessFile.seek(accessFile.length());
-                    accessFile.writeChars(data);
+                    Files.write(file.toPath(), Collections.singletonList(record.toCsvRow()), StandardOpenOption.APPEND);
                 } finally {
                     lock.release();
                 }

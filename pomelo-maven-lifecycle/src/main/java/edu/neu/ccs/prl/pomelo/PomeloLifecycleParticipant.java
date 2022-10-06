@@ -29,7 +29,6 @@ public class PomeloLifecycleParticipant extends AbstractMavenLifecycleParticipan
                 case "fuzz":
                     configureForFuzz(session);
                     break;
-                case "check":
                 case "analyze":
                     break;
                 default:
