@@ -1,6 +1,8 @@
 package edu.neu.ccs.prl.pomelo;
 
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.surefire.AbstractSurefireMojo;
 import org.apache.maven.plugin.surefire.JdkAttributes;
 import org.apache.maven.plugin.surefire.SurefireHelper;
@@ -15,6 +17,7 @@ import org.apache.maven.surefire.booter.StartupConfiguration;
 import org.apache.maven.surefire.providerapi.ProviderInfo;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -22,12 +25,14 @@ import java.util.Properties;
 
 public final class SurefireMojoWrapper {
     private final AbstractSurefireMojo mojo;
+    private final PluginExecutable execute;
 
-    public SurefireMojoWrapper(AbstractSurefireMojo mojo) {
-        if (mojo == null) {
+    public SurefireMojoWrapper(AbstractSurefireMojo mojo, PluginExecutable execute) {
+        if (mojo == null || execute == null) {
             throw new NullPointerException();
         }
         this.mojo = mojo;
+        this.execute = execute;
     }
 
     public Properties getProperties() throws MojoExecutionException {
@@ -48,13 +53,10 @@ public final class SurefireMojoWrapper {
         return systemProperties;
     }
 
-    public void addScanListener(File report, String plugin, String execution) throws MojoExecutionException {
+    public void addScanListener(File report) throws MojoExecutionException {
         getProperties().put("listener", PomeloJUnitListener.class.getName());
         Properties systemProperties = getSystemProperties();
         systemProperties.put("pomelo.scan.report", report.getAbsolutePath());
-        systemProperties.put("pomelo.scan.project", mojo.getProject().getFile().getAbsolutePath());
-        systemProperties.put("pomelo.scan.plugin", plugin);
-        systemProperties.put("pomelo.scan.execution", execution);
     }
 
     public SurefireProperties setupProperties() throws MojoExecutionException {
@@ -116,6 +118,33 @@ public final class SurefireMojoWrapper {
         return invokeMethod(mojo, getMethod("scanForTestClasses"), DefaultScanResult.class);
     }
 
+    public void scan(MojoExecution mojoExecution, File scanReport, File outputDir, String pluginName)
+            throws MojoExecutionException, MojoFailureException {
+        File initialReport = ensureNew(new File(outputDir, "temp-scan.txt"));
+        addScanListener(initialReport);
+        execute.execute();
+        try {
+            List<TestRecord> records = TestRecord.readCsvRows(initialReport);
+            for (TestRecord record : records) {
+                record.setExecution(mojoExecution.getExecutionId());
+                record.setPlugin(pluginName);
+                record.setProject(mojo.getProject().getId());
+            }
+            new EntryWriter(scanReport).appendAll(TestRecord.toCsvRows(records));
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to process scan files", e);
+        }
+
+    }
+
+    public static File ensureNew(File file) throws MojoExecutionException {
+        try {
+            return FileUtil.ensureNew(file);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to create file: " + file, e);
+        }
+    }
+
     private static void setField(AbstractSurefireMojo mojo, String fieldName, Object value)
             throws MojoExecutionException {
         try {
@@ -156,5 +185,9 @@ public final class SurefireMojoWrapper {
         } catch (ClassCastException | ReflectiveOperationException e) {
             throw new MojoExecutionException("Failed to invoke method " + method, e);
         }
+    }
+
+    public interface PluginExecutable {
+        void execute() throws MojoExecutionException, MojoFailureException;
     }
 }

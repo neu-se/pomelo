@@ -7,6 +7,6 @@ Support for fuzzing parameterized JUnit tests.
 ```
 
 ```
--Dpomelo.phase=fuzz
+-Dpomelo.phase=fuzz -Dpomelo.project=<J> -Dpomelo.execution=<E> -Dpomelo.plugin=<P> -Dpomelo.testClass=<C> -Dpomelo.testMethod=<M>
 ```
 

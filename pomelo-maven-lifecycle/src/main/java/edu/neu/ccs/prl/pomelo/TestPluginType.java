@@ -1,5 +1,7 @@
 package edu.neu.ccs.prl.pomelo;
 
+import org.apache.maven.MavenExecutionException;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
 
@@ -46,7 +48,7 @@ public enum TestPluginType {
             if (type.matches(plugin)) {
                 plugin.setGroupId(POMELO_PLUGINS_GROUP_ID);
                 plugin.setArtifactId(type.pomeloArtifactId);
-                plugin.setVersion(PomeloPhase.POMELO_VERSION);
+                plugin.setVersion(PomeloLifecycleParticipant.POMELO_VERSION);
                 return;
             }
         }
@@ -55,10 +57,18 @@ public enum TestPluginType {
     public static void removeUnsupportedGoals(Plugin plugin) {
         for (TestPluginType type : values()) {
             if (type.matches(plugin)) {
-                plugin.getExecutions()
-                      .forEach(type::removeUnsupportedGoals);
+                plugin.getExecutions().forEach(type::removeUnsupportedGoals);
                 return;
             }
+        }
+    }
+
+    public static TestPluginType valueOf(MavenSession session, String name) throws MavenExecutionException {
+        try {
+            return valueOf(name.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new MavenExecutionException("Invalid " + TestPluginType.class + " name: " + name,
+                                              session.getRequest().getPom());
         }
     }
 }

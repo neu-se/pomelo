@@ -19,11 +19,7 @@ import java.util.stream.Collectors;
 public class PomeloJUnitListener extends RunListener {
     private static final Set<Description> failingParameterizedTests = new HashSet<>();
     private static final Set<Description> parameterizedTests = new HashSet<>();
-    private static final TestRecordWriter WRITER =
-            new TestRecordWriter(new File(System.getProperty("pomelo.scan.report")));
-    private static final String PROJECT = System.getProperty("pomelo.scan.project");
-    private static final String PLUGIN = System.getProperty("pomelo.scan.plugin");
-    private static final String EXECUTION = System.getProperty("pomelo.scan.execution");
+    private static final EntryWriter WRITER = new EntryWriter(new File(System.getProperty("pomelo.scan.report")));
 
     static {
         Runtime.getRuntime().addShutdownHook(new Thread(PomeloJUnitListener::writeTestRecords));
@@ -64,7 +60,7 @@ public class PomeloJUnitListener extends RunListener {
         markFailingTests(failing, records);
         synchronized (WRITER) {
             try {
-                WRITER.appendAll(records);
+                WRITER.appendAll(TestRecord.toCsvRows(records));
             } catch (IOException e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);
@@ -78,9 +74,7 @@ public class PomeloJUnitListener extends RunListener {
             String testClassName = test.getTestClass().getName();
             String testMethodName = getMethodName(test);
             String runnerClassName = test.getTestClass().getAnnotation(RunWith.class).value().getName();
-            records.add(
-                    new TestRecord(PROJECT, PLUGIN, EXECUTION, testClassName, testMethodName, runnerClassName, false,
-                                   false));
+            records.add(new TestRecord(testClassName, testMethodName, runnerClassName));
         }
         return records;
     }

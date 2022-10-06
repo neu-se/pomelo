@@ -1,14 +1,26 @@
 package edu.neu.ccs.prl.pomelo;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public final class TestRecord {
-    private final String project;
-    private final String plugin;
-    private final String execution;
     private final String testClassName;
     private final String testMethodName;
     private final String runnerClassName;
+    private String project;
+    private String plugin;
+    private String execution;
     private boolean failed;
     private boolean ambiguous;
+
+    public TestRecord(String testClassName, String testMethodName, String runnerClassName) {
+        this("", "", "", testClassName, testMethodName, runnerClassName, false, false);
+    }
 
     public TestRecord(String project, String plugin, String execution, String testClassName, String testMethodName,
                       String runnerClassName, boolean failed, boolean ambiguous) {
@@ -30,12 +42,24 @@ public final class TestRecord {
         return project;
     }
 
+    public void setProject(String project) {
+        this.project = project;
+    }
+
     public String getPlugin() {
         return plugin;
     }
 
+    public void setPlugin(String plugin) {
+        this.plugin = plugin;
+    }
+
     public String getExecution() {
         return execution;
+    }
+
+    public void setExecution(String execution) {
+        this.execution = execution;
     }
 
     public String getTestClassName() {
@@ -74,6 +98,8 @@ public final class TestRecord {
         result = 31 * result + testClassName.hashCode();
         result = 31 * result + testMethodName.hashCode();
         result = 31 * result + runnerClassName.hashCode();
+        result = 31 * result + (failed ? 1 : 0);
+        result = 31 * result + (ambiguous ? 1 : 0);
         return result;
     }
 
@@ -85,6 +111,12 @@ public final class TestRecord {
             return false;
         }
         TestRecord that = (TestRecord) o;
+        if (failed != that.failed) {
+            return false;
+        }
+        if (ambiguous != that.ambiguous) {
+            return false;
+        }
         if (!project.equals(that.project)) {
             return false;
         }
@@ -105,21 +137,31 @@ public final class TestRecord {
 
     @Override
     public String toString() {
-        return "TestRecord{" +
-                "project='" + project + '\'' +
-                ", plugin='" + plugin + '\'' +
-                ", execution='" + execution + '\'' +
-                ", testClassName='" + testClassName + '\'' +
-                ", testMethodName='" + testMethodName + '\'' +
-                ", runnerClassName='" + runnerClassName + '\'' +
-                ", failed=" + failed +
-                ", ambiguous=" + ambiguous +
-                '}';
+        return "TestRecord{" + "project='" + project + '\'' + ", plugin='" + plugin + '\'' + ", execution='" +
+                execution + '\'' + ", testClassName='" + testClassName + '\'' + ", testMethodName='" + testMethodName +
+                '\'' + ", runnerClassName='" + runnerClassName + '\'' + ", failed=" + failed + ", ambiguous=" +
+                ambiguous + '}';
     }
 
     public String toCsvRow() {
-        return String.format("%s,%s,%s,%s,%s,%s,%s,%s", plugin, execution, testClassName,
-                             testMethodName, runnerClassName, failed, ambiguous, project);
+        return String.format("%s,%s,%s,%s,%s,%s,%s,%s", plugin, execution, testClassName, testMethodName,
+                             runnerClassName, failed, ambiguous, project);
+    }
+
+    public static List<String> toCsvRows(Collection<TestRecord> records) {
+        return records.stream().map(TestRecord::toCsvRow).collect(Collectors.toList());
+    }
+
+    public static List<TestRecord> readCsvRows(File file) throws IOException {
+        List<String> lines = Files.readAllLines(file.toPath());
+        List<TestRecord> records = new ArrayList<>(lines.size());
+        for (String line : lines) {
+            String[] split = line.split(",", 8);
+            TestRecord record = new TestRecord(split[7], split[0], split[1], split[2], split[3], split[4],
+                                               Boolean.parseBoolean(split[6]), Boolean.parseBoolean(split[7]));
+            records.add(record);
+        }
+        return records;
     }
 
     public static String getCsvHeader() {

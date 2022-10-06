@@ -7,35 +7,32 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
-import java.util.Collections;
-import java.util.Set;
+import java.util.Arrays;
 
-class TestRecordWriter {
+public class EntryWriter {
     private final File file;
 
-    TestRecordWriter(File file) {
+    public EntryWriter(File file) {
         if (!file.isFile()) {
-            throw new IllegalArgumentException("Record file does not exists or is not a normal file: " + file);
+            throw new IllegalArgumentException("Report file does not exists or is not a normal file: " + file);
         }
         this.file = file;
     }
 
-    public void appendAll(Set<TestRecord> records) throws IOException {
-        for (TestRecord record : records) {
-            append(record);
-        }
-    }
-
-    public void append(TestRecord record) throws IOException {
+    public void appendAll(Iterable<String> entries) throws IOException {
         try (RandomAccessFile accessFile = new RandomAccessFile(file, "rw")) {
             try (FileChannel channel = accessFile.getChannel()) {
                 FileLock lock = channel.lock();
                 try {
-                    Files.write(file.toPath(), Collections.singletonList(record.toCsvRow()), StandardOpenOption.APPEND);
+                    Files.write(file.toPath(), entries, StandardOpenOption.APPEND);
                 } finally {
                     lock.release();
                 }
             }
         }
+    }
+
+    public void appendAll(String... entries) throws IOException {
+        appendAll(Arrays.asList(entries));
     }
 }

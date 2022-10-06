@@ -14,7 +14,7 @@ import java.io.File;
 @Mojo(name = "scan-integration-test", requiresDependencyResolution = ResolutionScope.TEST,
         defaultPhase = LifecyclePhase.INTEGRATION_TEST)
 public class FailsafeScanningMojo extends IntegrationTestMojo {
-    private final SurefireMojoWrapper wrapper = new SurefireMojoWrapper(this);
+    private final SurefireMojoWrapper wrapper = new SurefireMojoWrapper(this, super::execute);
     /**
      * The current execution of this plugin.
      */
@@ -24,11 +24,15 @@ public class FailsafeScanningMojo extends IntegrationTestMojo {
      * File to which pomelo report entries are written.
      */
     @Parameter(required = true)
-    private File pomeloScanReport;
+    private File scanReport;
+    /**
+     * Directory to which output files should be written.
+     */
+    @Parameter(defaultValue = "${project.build.directory}/pomelo", readonly = true, required = true)
+    private File outputDir;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        wrapper.addScanListener(pomeloScanReport, "failsafe", mojoExecution.getExecutionId());
-        super.execute();
+        wrapper.scan(mojoExecution, scanReport, outputDir, "failsafe");
     }
 }

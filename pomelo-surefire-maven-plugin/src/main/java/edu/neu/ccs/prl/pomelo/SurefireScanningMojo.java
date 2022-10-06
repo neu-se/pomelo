@@ -13,7 +13,7 @@ import java.io.File;
 
 @Mojo(name = "scan-test", defaultPhase = LifecyclePhase.TEST, requiresDependencyResolution = ResolutionScope.TEST)
 public class SurefireScanningMojo extends SurefirePlugin {
-    private final SurefireMojoWrapper wrapper = new SurefireMojoWrapper(this);
+    private final SurefireMojoWrapper wrapper = new SurefireMojoWrapper(this, super::execute);
     /**
      * The current execution of this plugin.
      */
@@ -23,11 +23,15 @@ public class SurefireScanningMojo extends SurefirePlugin {
      * File to which pomelo report entries are written.
      */
     @Parameter(required = true)
-    private File pomeloScanReport;
+    private File scanReport;
+    /**
+     * Directory to which output files should be written.
+     */
+    @Parameter(defaultValue = "${project.build.directory}/pomelo", readonly = true, required = true)
+    private File outputDir;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        wrapper.addScanListener(pomeloScanReport, "surefire", mojoExecution.getExecutionId());
-        super.execute();
+        wrapper.scan(mojoExecution, scanReport, outputDir, "surefire");
     }
 }

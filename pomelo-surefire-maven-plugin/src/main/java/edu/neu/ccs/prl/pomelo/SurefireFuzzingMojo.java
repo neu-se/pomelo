@@ -1,6 +1,5 @@
 package edu.neu.ccs.prl.pomelo;
 
-import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.surefire.JdkAttributes;
 import org.apache.maven.plugin.surefire.SurefirePlugin;
@@ -20,7 +19,7 @@ import org.apache.maven.surefire.shared.utils.cli.ShutdownHookUtils;
 @Mojo(name = "fuzz-test", defaultPhase = LifecyclePhase.TEST, requiresDependencyResolution = ResolutionScope.TEST)
 public class SurefireFuzzingMojo extends SurefirePlugin {
     private static final Platform PLATFORM = new Platform();
-    private final SurefireMojoWrapper wrapper = new SurefireMojoWrapper(this);
+    private final SurefireMojoWrapper wrapper = new SurefireMojoWrapper(this, super::execute);
     /**
      * Fully-qualified name of the test class.
      *
@@ -33,16 +32,12 @@ public class SurefireFuzzingMojo extends SurefirePlugin {
      */
     @Parameter(property = "pomelo.testMethod", required = true)
     private String testMethod;
-    /**
-     * The current execution of this plugin.
-     */
-    @Parameter(defaultValue = "${mojoExecution}", readonly = true, required = true)
-    private MojoExecution mojoExecution;
 
     @Override
     public void execute() throws MojoExecutionException {
-        wrapper.forceForks();
         setTest(testClass + "#" + testMethod);
+        getLog().info(String.format("Fuzzing %s", getTest()));
+        wrapper.forceForks();
         wrapper.configure();
         JdkAttributes attributes = wrapper.getJdkAttributes();
         Platform platform = PLATFORM.withJdkExecAttributesForTests(attributes);
