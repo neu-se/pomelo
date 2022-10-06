@@ -33,6 +33,6 @@ public class FailsafeScanningMojo extends IntegrationTestMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        wrapper.scan(mojoExecution, scanReport, outputDir, "failsafe");
+        new TestScanner(wrapper, mojoExecution, scanReport, outputDir,"failsafe").scan();
     }
 }

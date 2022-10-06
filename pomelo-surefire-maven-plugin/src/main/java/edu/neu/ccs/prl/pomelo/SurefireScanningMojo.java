@@ -32,6 +32,6 @@ public class SurefireScanningMojo extends SurefirePlugin {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        wrapper.scan(mojoExecution, scanReport, outputDir, "surefire");
+        new TestScanner(wrapper, mojoExecution, scanReport, outputDir,"surefire").scan();
     }
 }

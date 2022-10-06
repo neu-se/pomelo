@@ -1,6 +1,5 @@
 package edu.neu.ccs.prl.pomelo;
 
-import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.surefire.AbstractSurefireMojo;
@@ -10,6 +9,7 @@ import org.apache.maven.plugin.surefire.SurefireProperties;
 import org.apache.maven.plugin.surefire.booterclient.ForkConfiguration;
 import org.apache.maven.plugin.surefire.booterclient.Platform;
 import org.apache.maven.plugin.surefire.log.PluginConsoleLogger;
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.surefire.api.cli.CommandLineOption;
 import org.apache.maven.surefire.api.util.DefaultScanResult;
 import org.apache.maven.surefire.booter.ClassLoaderConfiguration;
@@ -51,12 +51,6 @@ public final class SurefireMojoWrapper {
             mojo.setSystemProperties(systemProperties);
         }
         return systemProperties;
-    }
-
-    public void addScanListener(File report) throws MojoExecutionException {
-        getProperties().put("listener", PomeloJUnitListener.class.getName());
-        Properties systemProperties = getSystemProperties();
-        systemProperties.put("pomelo.scan.report", report.getAbsolutePath());
     }
 
     public SurefireProperties setupProperties() throws MojoExecutionException {
@@ -118,23 +112,12 @@ public final class SurefireMojoWrapper {
         return invokeMethod(mojo, getMethod("scanForTestClasses"), DefaultScanResult.class);
     }
 
-    public void scan(MojoExecution mojoExecution, File scanReport, File outputDir, String pluginName)
-            throws MojoExecutionException, MojoFailureException {
-        File initialReport = ensureNew(new File(outputDir, "temp-scan.txt"));
-        addScanListener(initialReport);
+    public void execute() throws MojoExecutionException, MojoFailureException {
         execute.execute();
-        try {
-            List<TestRecord> records = TestRecord.readCsvRows(initialReport);
-            for (TestRecord record : records) {
-                record.setExecution(mojoExecution.getExecutionId());
-                record.setPlugin(pluginName);
-                record.setProject(mojo.getProject().getId());
-            }
-            new EntryWriter(scanReport).appendAll(TestRecord.toCsvRows(records));
-        } catch (IOException e) {
-            throw new MojoExecutionException("Failed to process scan files", e);
-        }
+    }
 
+    public MavenProject getProject() {
+        return mojo.getProject();
     }
 
     public static File ensureNew(File file) throws MojoExecutionException {
