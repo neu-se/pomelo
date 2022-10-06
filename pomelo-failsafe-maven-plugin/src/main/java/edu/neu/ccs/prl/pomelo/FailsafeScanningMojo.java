@@ -28,8 +28,7 @@ public class FailsafeScanningMojo extends IntegrationTestMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-
-        wrapper.addScanListener(pomeloScanReport, mojoExecution.getExecutionId());
+        wrapper.addScanListener(pomeloScanReport, "failsafe", mojoExecution.getExecutionId());
         super.execute();
     }
 }

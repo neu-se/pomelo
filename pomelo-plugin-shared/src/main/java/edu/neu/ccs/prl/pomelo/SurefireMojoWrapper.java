@@ -48,13 +48,13 @@ public final class SurefireMojoWrapper {
         return systemProperties;
     }
 
-    public void addScanListener(File report, String executionId) throws MojoExecutionException {
+    public void addScanListener(File report, String plugin, String execution) throws MojoExecutionException {
         getProperties().put("listener", PomeloJUnitListener.class.getName());
         Properties systemProperties = getSystemProperties();
         systemProperties.put("pomelo.scan.report", report.getAbsolutePath());
         systemProperties.put("pomelo.scan.project", mojo.getProject().getFile().getAbsolutePath());
-        systemProperties.put("pomelo.scan.plugin", "surefire");
-        systemProperties.put("pomelo.scan.execution", executionId);
+        systemProperties.put("pomelo.scan.plugin", plugin);
+        systemProperties.put("pomelo.scan.execution", execution);
     }
 
     public SurefireProperties setupProperties() throws MojoExecutionException {

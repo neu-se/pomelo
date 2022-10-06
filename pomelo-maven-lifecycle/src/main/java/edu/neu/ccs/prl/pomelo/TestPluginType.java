@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public enum MavenTestPluginType {
+public enum TestPluginType {
     SUREFIRE("maven-surefire-plugin", "pomelo-surefire-maven-plugin", "test"),
     FAILSAFE("maven-failsafe-plugin", "pomelo-failsafe-maven-plugin", "integration-test");
     private static final String MAVEN_PLUGINS_GROUP_ID = "org.apache.maven.plugins";
@@ -18,7 +18,7 @@ public enum MavenTestPluginType {
     private final String pomeloArtifactId;
     private final Set<String> supportedGoals;
 
-    MavenTestPluginType(String mavenArtifactId, String pomeloArtifactId, String... supportedGoals) {
+    TestPluginType(String mavenArtifactId, String pomeloArtifactId, String... supportedGoals) {
         this.mavenArtifactId = mavenArtifactId;
         this.pomeloArtifactId = pomeloArtifactId;
         this.supportedGoals = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(supportedGoals)));
@@ -33,7 +33,7 @@ public enum MavenTestPluginType {
     }
 
     public static boolean isTestPlugin(Plugin plugin) {
-        for (MavenTestPluginType type : values()) {
+        for (TestPluginType type : values()) {
             if (type.matches(plugin)) {
                 return true;
             }
@@ -42,7 +42,7 @@ public enum MavenTestPluginType {
     }
 
     public static void replace(Plugin plugin) {
-        for (MavenTestPluginType type : values()) {
+        for (TestPluginType type : values()) {
             if (type.matches(plugin)) {
                 plugin.setGroupId(POMELO_PLUGINS_GROUP_ID);
                 plugin.setArtifactId(type.pomeloArtifactId);
@@ -53,7 +53,7 @@ public enum MavenTestPluginType {
     }
 
     public static void removeUnsupportedGoals(Plugin plugin) {
-        for (MavenTestPluginType type : values()) {
+        for (TestPluginType type : values()) {
             if (type.matches(plugin)) {
                 plugin.getExecutions()
                       .forEach(type::removeUnsupportedGoals);

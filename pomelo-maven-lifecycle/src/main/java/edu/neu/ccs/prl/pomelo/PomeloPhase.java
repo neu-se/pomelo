@@ -68,9 +68,9 @@ public enum PomeloPhase {
     public abstract void configure(MavenSession session) throws MavenExecutionException;
 
     private static void replaceTestPlugins(MavenSession session, String prefix) {
-        reconfigureTestPlugins(session, MavenTestPluginType::removeUnsupportedGoals);
+        reconfigureTestPlugins(session, TestPluginType::removeUnsupportedGoals);
         reconfigureTestPluginExecutions(session, (e) -> prefixGoals(e, prefix));
-        reconfigureTestPlugins(session, MavenTestPluginType::replace);
+        reconfigureTestPlugins(session, TestPluginType::replace);
     }
 
     private static void prefixGoals(PluginExecution execution, String prefix) {
@@ -97,14 +97,14 @@ public enum PomeloPhase {
     private static void reconfigureTestPlugins(MavenSession session, Consumer<Plugin> consumer) {
         getAllPlugins(session)
                 .stream()
-                .filter(MavenTestPluginType::isTestPlugin)
+                .filter(TestPluginType::isTestPlugin)
                 .forEach(consumer);
     }
 
     private static void reconfigureTestPluginExecutions(MavenSession session, Consumer<PluginExecution> consumer) {
         getAllPlugins(session)
                 .stream()
-                .filter(MavenTestPluginType::isTestPlugin)
+                .filter(TestPluginType::isTestPlugin)
                 .flatMap(p -> p.getExecutions().stream())
                 .forEach(consumer);
     }

@@ -27,7 +27,7 @@ public class SurefireScanningMojo extends SurefirePlugin {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        wrapper.addScanListener(pomeloScanReport, mojoExecution.getExecutionId());
+        wrapper.addScanListener(pomeloScanReport, "surefire", mojoExecution.getExecutionId());
         super.execute();
     }
 }

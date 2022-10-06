@@ -118,11 +118,11 @@ public final class TestRecord {
     }
 
     public String toCsvRow() {
-        return String.format("%s,%s,%s,%s,%s,%s,%s,%s", project, plugin, execution, testClassName,
-                             testMethodName, runnerClassName, failed, ambiguous);
+        return String.format("%s,%s,%s,%s,%s,%s,%s,%s", plugin, execution, testClassName,
+                             testMethodName, runnerClassName, failed, ambiguous, project);
     }
 
     public static String getCsvHeader() {
-        return "project,plugin,execution,test_class,test_method,runner,failed,ambiguous";
+        return "plugin,execution,test_class,test_method,runner,failed,ambiguous,project";
     }
 }
