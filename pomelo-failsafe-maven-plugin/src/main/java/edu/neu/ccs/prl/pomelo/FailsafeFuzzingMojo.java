@@ -7,8 +7,8 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
-@Mojo(name = "integration-test", requiresDependencyResolution = ResolutionScope.TEST,
-        defaultPhase = LifecyclePhase.INTEGRATION_TEST, threadSafe = true)
+@Mojo(name = "fuzz-integration-test", requiresDependencyResolution = ResolutionScope.TEST,
+        defaultPhase = LifecyclePhase.INTEGRATION_TEST)
 public class FailsafeFuzzingMojo extends IntegrationTestMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
