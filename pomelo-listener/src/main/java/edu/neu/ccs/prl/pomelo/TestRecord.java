@@ -158,7 +158,7 @@ public final class TestRecord {
         for (String line : lines) {
             String[] split = line.split(",", 8);
             TestRecord record = new TestRecord(split[7], split[0], split[1], split[2], split[3], split[4],
-                                               Boolean.parseBoolean(split[6]), Boolean.parseBoolean(split[7]));
+                                               Boolean.parseBoolean(split[5]), Boolean.parseBoolean(split[6]));
             records.add(record);
         }
         return records;
