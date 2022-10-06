@@ -1,5 +1,10 @@
 package edu.neu.ccs.prl.pomelo;
 
+import edu.neu.ccs.prl.pomelo.scan.PomeloJUnitListener;
+import edu.neu.ccs.prl.pomelo.scan.TestRecord;
+import edu.neu.ccs.prl.pomelo.scan.ReportEntry;
+import edu.neu.ccs.prl.pomelo.scan.TestResult;
+import edu.neu.ccs.prl.pomelo.util.AppendingWriter;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -32,7 +37,7 @@ public class TestScanner {
 
     private void writeReportEntries(List<ReportEntry> entries) throws MojoExecutionException {
         try {
-            new EntryWriter(scanReport).appendAll(ReportEntry.toCsvRows(entries));
+            new AppendingWriter(scanReport).appendAll(ReportEntry.toCsvRows(entries));
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to write scan report entries", e);
         }
@@ -44,26 +49,32 @@ public class TestScanner {
         Properties systemProperties = wrapper.getSystemProperties();
         systemProperties.put("pomelo.scan.report", initialReport.getAbsolutePath());
         wrapper.execute();
-        try {
-            return TestRecord.readCsvRows(initialReport);
-        } catch (IOException e) {
-            throw new MojoExecutionException("Failed to read initial scan", e);
-        }
+        return readRecords(initialReport);
     }
 
     private List<ReportEntry> processRecords(List<TestRecord> records) {
         List<ReportEntry> result = new ArrayList<>(records.size());
         for (TestRecord record : records) {
-            result.add(processRecord(record));
+            result.add(new ReportEntry(wrapper.getProject().getId(), pluginName, execution.getExecutionId(),
+                                       record.getTestClassName(), record.getTestMethodName(),
+                                       record.getRunnerClassName(), record.isUnambiguous(),
+                                       record.passed() ? TestResult.PASSED : TestResult.FAILED,
+                                       record.passed() && record.isUnambiguous() ? performIsolatedRun(record) :
+                                               TestResult.NONE));
         }
         return result;
     }
 
-    private ReportEntry processRecord(TestRecord record) {
-        TestResult isolatedResult = TestResult.NONE;
-        return new ReportEntry(wrapper.getProject().getId(), pluginName, execution.getExecutionId(),
-                               record.getTestClassName(), record.getTestMethodName(), record.getRunnerClassName(),
-                               record.isUnambiguous(), record.isPassed() ? TestResult.PASSED : TestResult.FAILED,
-                               isolatedResult);
+    private List<TestRecord> readRecords(File file) throws MojoExecutionException {
+        try {
+            return TestRecord.readCsvRows(file);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to read scan records", e);
+        }
+    }
+
+    private TestResult performIsolatedRun(TestRecord record) {
+        // TODO
+        return TestResult.NONE;
     }
 }

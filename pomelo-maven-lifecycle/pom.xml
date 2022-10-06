@@ -21,7 +21,7 @@
         </dependency>
         <dependency>
             <groupId>edu.neu.ccs.prl.pomelo</groupId>
-            <artifactId>pomelo-listener</artifactId>
+            <artifactId>pomelo-core</artifactId>
         </dependency>
     </dependencies>
     <build>

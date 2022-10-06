@@ -1,4 +1,4 @@
-package edu.neu.ccs.prl.pomelo;
+package edu.neu.ccs.prl.pomelo.util;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,7 +52,7 @@ public final class FileUtil {
         FileUtil.ensureDirectory(file.getParentFile());
         FileUtil.delete(file);
         if (!file.createNewFile()) {
-            throw new IOException("failed to create file: " + file);
+            throw new IOException("Failed to create file: " + file);
         }
         return file;
     }

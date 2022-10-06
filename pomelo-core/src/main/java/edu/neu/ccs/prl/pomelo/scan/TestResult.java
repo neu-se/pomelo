@@ -1,4 +1,4 @@
-package edu.neu.ccs.prl.pomelo;
+package edu.neu.ccs.prl.pomelo.scan;
 
 public enum TestResult {
     PASSED,

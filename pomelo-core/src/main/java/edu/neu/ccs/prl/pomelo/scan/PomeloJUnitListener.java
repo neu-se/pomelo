@@ -1,5 +1,6 @@
-package edu.neu.ccs.prl.pomelo;
+package edu.neu.ccs.prl.pomelo.scan;
 
+import edu.neu.ccs.prl.pomelo.util.AppendingWriter;
 import org.junit.Test;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 public class PomeloJUnitListener extends RunListener {
     private static final Set<Description> failingParameterizedTests = new HashSet<>();
     private static final Set<Description> parameterizedTests = new HashSet<>();
-    private static final EntryWriter WRITER = new EntryWriter(new File(System.getProperty("pomelo.scan.report")));
+    private static final AppendingWriter WRITER = new AppendingWriter(new File(System.getProperty("pomelo.scan.report")));
 
     static {
         Runtime.getRuntime().addShutdownHook(new Thread(PomeloJUnitListener::writeTestRecords));

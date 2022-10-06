@@ -1,4 +1,4 @@
-package edu.neu.ccs.prl.pomelo;
+package edu.neu.ccs.prl.pomelo.util;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,12 +9,12 @@ import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 
-public class EntryWriter {
+public final class AppendingWriter {
     private final File file;
 
-    public EntryWriter(File file) {
+    public AppendingWriter(File file) {
         if (!file.isFile()) {
-            throw new IllegalArgumentException("Report file does not exists or is not a normal file: " + file);
+            throw new IllegalArgumentException("File does not exists or is not a normal file: " + file);
         }
         this.file = file;
     }

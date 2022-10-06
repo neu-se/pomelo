@@ -1,5 +1,7 @@
 package edu.neu.ccs.prl.pomelo;
 
+import edu.neu.ccs.prl.pomelo.scan.ReportEntry;
+import edu.neu.ccs.prl.pomelo.util.FileUtil;
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;

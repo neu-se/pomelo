@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 public class PomeloLifecycleParticipant extends AbstractMavenLifecycleParticipant {
     static final String POMELO_VERSION = "1.0.0-SNAPSHOT";
     static final String POMELO_GROUP_ID = "edu.neu.ccs.prl.pomelo";
-    static final String POMELO_LISTENER_ARTIFACT_ID = "pomelo-listener";
+    static final String POMELO_LISTENER_ARTIFACT_ID = "pomelo-core";
     static final String SNAPSHOTS_REPO = "https://s01.oss.sonatype.org/content/repositories/snapshots";
 
     @Override

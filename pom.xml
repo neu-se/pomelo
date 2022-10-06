@@ -29,7 +29,7 @@
         <url>https://github.com/neu-se/pomelo.git</url>
     </scm>
     <modules>
-        <module>pomelo-listener</module>
+        <module>pomelo-core</module>
         <module>pomelo-plugin-shared</module>
         <module>pomelo-surefire-maven-plugin</module>
         <module>pomelo-failsafe-maven-plugin</module>
@@ -47,7 +47,7 @@
             </dependency>
             <dependency>
                 <groupId>edu.neu.ccs.prl.pomelo</groupId>
-                <artifactId>pomelo-listener</artifactId>
+                <artifactId>pomelo-core</artifactId>
                 <version>1.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>

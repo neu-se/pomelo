@@ -1,4 +1,4 @@
-package edu.neu.ccs.prl.pomelo;
+package edu.neu.ccs.prl.pomelo.scan;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,7 +43,7 @@ public final class TestRecord {
         return unambiguous;
     }
 
-    public boolean isPassed() {
+    public boolean passed() {
         return passed;
     }
 
