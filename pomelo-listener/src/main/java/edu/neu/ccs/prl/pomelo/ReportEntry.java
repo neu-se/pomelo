@@ -44,6 +44,6 @@ public class ReportEntry {
 
     public static String getCsvHeader() {
         return "project_id,plugin_name,execution_id,test_class_name,test_method_name,runner_class_name,unambiguous," +
-                "original_result," + "isolated_result";
+                "original_result,isolated_result";
     }
 }
