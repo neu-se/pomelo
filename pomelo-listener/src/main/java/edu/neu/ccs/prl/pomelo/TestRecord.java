@@ -144,8 +144,8 @@ public final class TestRecord {
     }
 
     public String toCsvRow() {
-        return String.format("%s,%s,%s,%s,%s,%s,%s,%s", plugin, execution, testClassName, testMethodName,
-                             runnerClassName, failed, ambiguous, project);
+        return String.format("%s,%s,%s,%s,%s,%s,%s,%s", project, plugin, execution, testClassName, testMethodName,
+                             runnerClassName, failed, ambiguous);
     }
 
     public static List<String> toCsvRows(Collection<TestRecord> records) {
@@ -157,14 +157,14 @@ public final class TestRecord {
         List<TestRecord> records = new ArrayList<>(lines.size());
         for (String line : lines) {
             String[] split = line.split(",", 8);
-            TestRecord record = new TestRecord(split[7], split[0], split[1], split[2], split[3], split[4],
-                                               Boolean.parseBoolean(split[5]), Boolean.parseBoolean(split[6]));
+            TestRecord record = new TestRecord(split[0], split[1], split[2], split[3], split[4], split[5],
+                                               Boolean.parseBoolean(split[6]), Boolean.parseBoolean(split[7]));
             records.add(record);
         }
         return records;
     }
 
     public static String getCsvHeader() {
-        return "plugin,execution,test_class,test_method,runner,failed,ambiguous,project";
+        return "project,plugin,execution,test_class,test_method,runner,failed,ambiguous";
     }
 }
