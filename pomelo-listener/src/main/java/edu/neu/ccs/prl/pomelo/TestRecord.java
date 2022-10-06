@@ -12,54 +12,19 @@ public final class TestRecord {
     private final String testClassName;
     private final String testMethodName;
     private final String runnerClassName;
-    private String project;
-    private String plugin;
-    private String execution;
-    private boolean failed;
-    private boolean ambiguous;
+    private final boolean unambiguous;
+    private final boolean passed;
 
-    public TestRecord(String testClassName, String testMethodName, String runnerClassName) {
-        this("", "", "", testClassName, testMethodName, runnerClassName, false, false);
-    }
-
-    public TestRecord(String project, String plugin, String execution, String testClassName, String testMethodName,
-                      String runnerClassName, boolean failed, boolean ambiguous) {
-        if (project == null || plugin == null || execution == null || testClassName == null || testMethodName == null ||
-                runnerClassName == null) {
+    public TestRecord(String testClassName, String testMethodName, String runnerClassName, boolean unambiguous,
+                      boolean passed) {
+        if (testClassName == null || testMethodName == null || runnerClassName == null) {
             throw new NullPointerException();
         }
-        this.project = project;
-        this.plugin = plugin;
-        this.execution = execution;
         this.testClassName = testClassName;
         this.testMethodName = testMethodName;
         this.runnerClassName = runnerClassName;
-        this.failed = failed;
-        this.ambiguous = ambiguous;
-    }
-
-    public String getProject() {
-        return project;
-    }
-
-    public void setProject(String project) {
-        this.project = project;
-    }
-
-    public String getPlugin() {
-        return plugin;
-    }
-
-    public void setPlugin(String plugin) {
-        this.plugin = plugin;
-    }
-
-    public String getExecution() {
-        return execution;
-    }
-
-    public void setExecution(String execution) {
-        this.execution = execution;
+        this.unambiguous = unambiguous;
+        this.passed = passed;
     }
 
     public String getTestClassName() {
@@ -74,32 +39,21 @@ public final class TestRecord {
         return runnerClassName;
     }
 
-    public boolean isFailed() {
-        return failed;
+    public boolean isUnambiguous() {
+        return unambiguous;
     }
 
-    public void setFailed(boolean failed) {
-        this.failed = failed;
-    }
-
-    public boolean isAmbiguous() {
-        return ambiguous;
-    }
-
-    public void setAmbiguous(boolean ambiguous) {
-        this.ambiguous = ambiguous;
+    public boolean isPassed() {
+        return passed;
     }
 
     @Override
     public int hashCode() {
-        int result = project.hashCode();
-        result = 31 * result + plugin.hashCode();
-        result = 31 * result + execution.hashCode();
-        result = 31 * result + testClassName.hashCode();
+        int result = testClassName.hashCode();
         result = 31 * result + testMethodName.hashCode();
         result = 31 * result + runnerClassName.hashCode();
-        result = 31 * result + (failed ? 1 : 0);
-        result = 31 * result + (ambiguous ? 1 : 0);
+        result = 31 * result + (unambiguous ? 1 : 0);
+        result = 31 * result + (passed ? 1 : 0);
         return result;
     }
 
@@ -111,19 +65,10 @@ public final class TestRecord {
             return false;
         }
         TestRecord that = (TestRecord) o;
-        if (failed != that.failed) {
+        if (unambiguous != that.unambiguous) {
             return false;
         }
-        if (ambiguous != that.ambiguous) {
-            return false;
-        }
-        if (!project.equals(that.project)) {
-            return false;
-        }
-        if (!plugin.equals(that.plugin)) {
-            return false;
-        }
-        if (!execution.equals(that.execution)) {
+        if (passed != that.passed) {
             return false;
         }
         if (!testClassName.equals(that.testClassName)) {
@@ -137,15 +82,11 @@ public final class TestRecord {
 
     @Override
     public String toString() {
-        return "TestRecord{" + "project='" + project + '\'' + ", plugin='" + plugin + '\'' + ", execution='" +
-                execution + '\'' + ", testClassName='" + testClassName + '\'' + ", testMethodName='" + testMethodName +
-                '\'' + ", runnerClassName='" + runnerClassName + '\'' + ", failed=" + failed + ", ambiguous=" +
-                ambiguous + '}';
+        return "TestRecord{" + toCsvRow() + '}';
     }
 
     public String toCsvRow() {
-        return String.format("%s,%s,%s,%s,%s,%s,%s,%s", project, plugin, execution, testClassName, testMethodName,
-                             runnerClassName, failed, ambiguous);
+        return String.format("%s,%s,%s,%s,%s", testClassName, testMethodName, runnerClassName, unambiguous, passed);
     }
 
     public static List<String> toCsvRows(Collection<TestRecord> records) {
@@ -156,15 +97,11 @@ public final class TestRecord {
         List<String> lines = Files.readAllLines(file.toPath());
         List<TestRecord> records = new ArrayList<>(lines.size());
         for (String line : lines) {
-            String[] split = line.split(",", 8);
-            TestRecord record = new TestRecord(split[0], split[1], split[2], split[3], split[4], split[5],
-                                               Boolean.parseBoolean(split[6]), Boolean.parseBoolean(split[7]));
+            String[] split = line.split(",");
+            TestRecord record = new TestRecord(split[0], split[1], split[2], Boolean.parseBoolean(split[3]),
+                                               Boolean.parseBoolean(split[4]));
             records.add(record);
         }
         return records;
-    }
-
-    public static String getCsvHeader() {
-        return "project,plugin,execution,test_class,test_method,runner,failed,ambiguous";
     }
 }

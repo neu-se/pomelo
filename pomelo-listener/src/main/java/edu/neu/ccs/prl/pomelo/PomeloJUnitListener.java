@@ -45,9 +45,9 @@ public class PomeloJUnitListener extends RunListener {
     }
 
     private static void writeTestRecords() {
-        Description[] failing;
+        Description[] failingTests;
         synchronized (failingParameterizedTests) {
-            failing = failingParameterizedTests.toArray(new Description[0]);
+            failingTests = failingParameterizedTests.toArray(new Description[0]);
             failingParameterizedTests.clear();
         }
         Description[] tests;
@@ -55,9 +55,7 @@ public class PomeloJUnitListener extends RunListener {
             tests = parameterizedTests.toArray(new Description[0]);
             parameterizedTests.clear();
         }
-        Set<TestRecord> records = createRecords(tests);
-        markAmbiguousTests(tests, records);
-        markFailingTests(failing, records);
+        Set<TestRecord> records = createRecords(tests, failingTests);
         synchronized (WRITER) {
             try {
                 WRITER.appendAll(TestRecord.toCsvRows(records));
@@ -68,30 +66,33 @@ public class PomeloJUnitListener extends RunListener {
         }
     }
 
-    private static Set<TestRecord> createRecords(Description[] tests) {
+    private static Set<TestRecord> createRecords(Description[] tests, Description[] failingTests) {
+        Set<String> ambiguousClassNames = findAmbiguousTestClassNames(tests);
+        Set<String> failingTestNames = new HashSet<>();
+        for (Description test : failingTests) {
+            failingTestNames.add(test.getTestClass().getName() + "#" + getMethodName(test));
+        }
         Set<TestRecord> records = new HashSet<>();
         for (Description test : tests) {
             String testClassName = test.getTestClass().getName();
             String testMethodName = getMethodName(test);
             String runnerClassName = test.getTestClass().getAnnotation(RunWith.class).value().getName();
-            records.add(new TestRecord(testClassName, testMethodName, runnerClassName));
+            boolean ambiguous = isAmbiguous(ambiguousClassNames, test, testMethodName);
+            boolean failed = failingTestNames.contains(testClassName + "#" + testMethodName);
+            records.add(new TestRecord(testClassName, testMethodName, runnerClassName, !ambiguous, !failed));
         }
         return records;
     }
 
-    private static void markFailingTests(Description[] failing, Set<TestRecord> records) {
-        Set<TestRecord> failingRecords = createRecords(failing);
-        for (TestRecord record : records) {
-            if (failingRecords.contains(record)) {
-                record.setFailed(true);
-            }
-        }
-    }
-
-    private static void markAmbiguousTests(Description[] tests, Set<TestRecord> records) {
+    private static boolean isAmbiguous(Set<String> ambiguousClassNames, Description test, String testMethodName) {
         // All tests in a class are ambiguous if there is one than one test class with that name
         // A test method is ambiguous is there is more than one possible test method with the same name as the test
         // in its test class
+        return ambiguousClassNames.contains(test.getTestClass().getName()) ||
+                findMethod(test.getTestClass(), testMethodName).size() > 1;
+    }
+
+    private static Set<String> findAmbiguousTestClassNames(Description[] tests) {
         Map<String, Set<Class<?>>> classMap = new HashMap<>();
         for (Description test : tests) {
             String key = test.getTestClass().getName();
@@ -100,18 +101,13 @@ public class PomeloJUnitListener extends RunListener {
             }
             classMap.get(key).add(test.getTestClass());
         }
-        for (TestRecord record : records) {
-            String key = record.getTestClassName();
-            if (classMap.get(key).size() != 1) {
-                record.setAmbiguous(true);
-            } else {
-                Class<?> testClass = classMap.get(key).iterator().next();
-                List<Method> methods = findMethod(testClass, record.getTestMethodName());
-                if (methods.size() > 1) {
-                    record.setAmbiguous(true);
-                }
+        Set<String> result = new HashSet<>();
+        for (String key : classMap.keySet()) {
+            if (classMap.get(key).size() > 1) {
+                result.add(key);
             }
         }
+        return result;
     }
 
     private static List<Method> findMethod(Class<?> clazz, String name) {

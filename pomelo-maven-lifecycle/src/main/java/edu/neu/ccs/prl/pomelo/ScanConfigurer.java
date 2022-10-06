@@ -40,7 +40,7 @@ public final class ScanConfigurer {
                 new File(path);
         try {
             FileUtil.ensureNew(report);
-            Files.write(report.toPath(), Collections.singletonList(TestRecord.getCsvHeader()));
+            Files.write(report.toPath(), Collections.singletonList(ReportEntry.getCsvHeader()));
             return report;
         } catch (IOException e) {
             throw new MavenExecutionException("Failed to initialize scan report", e);
