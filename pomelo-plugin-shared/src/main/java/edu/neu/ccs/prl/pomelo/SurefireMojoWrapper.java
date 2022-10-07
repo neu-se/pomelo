@@ -1,6 +1,5 @@
 package edu.neu.ccs.prl.pomelo;
 
-import edu.neu.ccs.prl.pomelo.scan.ScanForkMain;
 import edu.neu.ccs.prl.pomelo.util.FileUtil;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -73,8 +72,7 @@ public final class SurefireMojoWrapper {
 
     public JarManifestForkConfiguration createForkConfiguration(Platform platform, File tempDir)
             throws MojoExecutionException {
-        Classpath bootClasspath = Classpath.emptyClasspath().addClassPathElementUrl(
-                PluginUtil.getClassPathElement(ScanForkMain.class).getAbsolutePath());
+        Classpath bootClasspath = Classpath.emptyClasspath();
         File workingDir = mojo.getWorkingDirectory() != null ? mojo.getWorkingDirectory() : mojo.getBasedir();
         return new JarManifestForkConfiguration(bootClasspath, tempDir, null, workingDir,
                                                 getProject().getModel().getProperties(), mojo.getArgLine(),

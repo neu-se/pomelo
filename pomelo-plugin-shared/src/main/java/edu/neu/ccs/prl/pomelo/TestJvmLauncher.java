@@ -46,20 +46,14 @@ public class TestJvmLauncher {
         Thread shutdownThread = new Thread(platform::setShutdownState);
         ShutdownHookUtils.addShutDownHook(shutdownThread);
         try {
-            return createCommandline(platform, tempDir);
-        } finally {
-            platform.clearShutdownState();
-            ShutdownHookUtils.removeShutdownHook(shutdownThread);
-        }
-    }
-
-    private Commandline createCommandline(Platform platform, File tempDir) throws MojoExecutionException {
-        StartupConfiguration startupConfiguration = wrapper.createStartupConfiguration();
-        ForkConfiguration forkConfiguration = wrapper.createForkConfiguration(platform, tempDir);
-        try {
+            StartupConfiguration startupConfiguration = wrapper.createStartupConfiguration();
+            ForkConfiguration forkConfiguration = wrapper.createForkConfiguration(platform, tempDir);
             return forkConfiguration.createCommandLine(startupConfiguration, 0, tempDir);
         } catch (SurefireBooterForkException e) {
             throw new MojoExecutionException("Failed to create commandline for test", e);
+        } finally {
+            platform.clearShutdownState();
+            ShutdownHookUtils.removeShutdownHook(shutdownThread);
         }
     }
 }

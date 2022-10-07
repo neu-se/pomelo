@@ -4,9 +4,7 @@ import edu.neu.ccs.prl.pomelo.scan.ReportEntry;
 import edu.neu.ccs.prl.pomelo.util.FileUtil;
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.model.PluginExecution;
-import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,7 +22,7 @@ public final class ScanConfigurer {
 
     public void configure(MavenSession session) {
         addArtifactRepositories(session);
-        session.getProjects().forEach(ScanConfigurer::addListenerDependency);
+        session.getProjects().forEach(PomeloLifecycleParticipant::addCoreDependency);
         reconfigureTestPluginExecutions(session, this::setScanReportValue);
         getAllTestPlugins(session).forEach(TestPluginType::removeUnsupportedGoals);
         reconfigureTestPluginExecutions(session, (e) -> prefixGoals(e, "scan-"));
@@ -47,14 +45,5 @@ public final class ScanConfigurer {
         } catch (IOException e) {
             throw new MavenExecutionException("Failed to initialize scan report", e);
         }
-    }
-
-    private static void addListenerDependency(MavenProject project) {
-        Dependency dependency = new Dependency();
-        dependency.setGroupId(POMELO_GROUP_ID);
-        dependency.setArtifactId(POMELO_LISTENER_ARTIFACT_ID);
-        dependency.setVersion(POMELO_VERSION);
-        dependency.setScope("test");
-        project.getDependencies().add(dependency);
     }
 }

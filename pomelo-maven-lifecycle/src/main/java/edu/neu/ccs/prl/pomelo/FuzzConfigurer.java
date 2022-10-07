@@ -27,6 +27,7 @@ public final class FuzzConfigurer {
 
     public void configure(MavenSession session) {
         addArtifactRepositories(session);
+        session.getProjects().forEach(PomeloLifecycleParticipant::addCoreDependency);
         filterExecutions(session);
         reconfigureTestPluginExecutions(session, this::setTestValues);
         getAllTestPlugins(session).forEach(TestPluginType::removeUnsupportedGoals);
