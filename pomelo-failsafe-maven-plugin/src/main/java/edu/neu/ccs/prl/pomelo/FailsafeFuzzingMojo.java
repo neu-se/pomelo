@@ -8,6 +8,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
+import java.io.File;
+
 @Mojo(name = "fuzz-integration-test", requiresDependencyResolution = ResolutionScope.TEST,
         defaultPhase = LifecyclePhase.INTEGRATION_TEST)
 public class FailsafeFuzzingMojo extends IntegrationTestMojo {
@@ -23,6 +25,11 @@ public class FailsafeFuzzingMojo extends IntegrationTestMojo {
      */
     @Parameter(property = "pomelo.testMethod", required = true)
     private String testMethod;
+    /**
+     * Directory to which output files should be written.
+     */
+    @Parameter(property = "pomelo.outputDir", defaultValue = "${project.build.directory}/pomelo")
+    private File outputDir;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {

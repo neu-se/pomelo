@@ -2,10 +2,60 @@ package edu.neu.ccs.prl.pomelo.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 
 public final class FileUtil {
     private FileUtil() {
         throw new AssertionError();
+    }
+
+    /**
+     * Tries to the specified directory and all of its contents/
+     *
+     * @param dir the directory to be deleted
+     * @throws NullPointerException if the specified directory is {@code null}
+     * @throws IOException          if {@code dir} is not a directory or an I/O error occurs
+     */
+    public static void deleteDirectory(File dir) throws IOException {
+        if (!dir.isDirectory()) {
+            throw new IOException();
+        }
+        Files.walkFileTree(dir.toPath(), new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
+                if (e == null) {
+                    Files.delete(dir);
+                    return FileVisitResult.CONTINUE;
+                } else {
+                    throw e;
+                }
+            }
+        });
+    }
+
+    /**
+     * Ensures that the specified directory exists and is empty.
+     *
+     * @param dir the directory to be created or emptied
+     * @throws IOException if the specified directory could not be created or emptied
+     */
+    public static void ensureEmptyDirectory(File dir) throws IOException {
+        if (dir.isDirectory()) {
+            deleteDirectory(dir);
+        } else {
+            delete(dir);
+        }
+        ensureDirectory(dir);
     }
 
     /**
@@ -41,18 +91,18 @@ public final class FileUtil {
         }
     }
 
-    public static File delete(File file) throws IOException {
+    public static void delete(File file) throws IOException {
         if (file.exists() && !file.delete()) {
             throw new IOException("Failed to delete existing file: " + file);
         }
-        return file;
     }
 
     public static File ensureNew(File file) throws IOException {
         FileUtil.ensureDirectory(file.getParentFile());
         FileUtil.delete(file);
         if (!file.createNewFile()) {
-            throw new IOException("Failed to create file: " + file);
+            throw new IOException("Failed" +
+                                          " to create file: " + file);
         }
         return file;
     }

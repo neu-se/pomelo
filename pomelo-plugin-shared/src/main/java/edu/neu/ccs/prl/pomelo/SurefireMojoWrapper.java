@@ -1,5 +1,6 @@
 package edu.neu.ccs.prl.pomelo;
 
+import edu.neu.ccs.prl.pomelo.scan.ScanForkMain;
 import edu.neu.ccs.prl.pomelo.util.FileUtil;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -7,13 +8,14 @@ import org.apache.maven.plugin.surefire.AbstractSurefireMojo;
 import org.apache.maven.plugin.surefire.JdkAttributes;
 import org.apache.maven.plugin.surefire.SurefireHelper;
 import org.apache.maven.plugin.surefire.SurefireProperties;
-import org.apache.maven.plugin.surefire.booterclient.ForkConfiguration;
+import org.apache.maven.plugin.surefire.booterclient.JarManifestForkConfiguration;
 import org.apache.maven.plugin.surefire.booterclient.Platform;
+import org.apache.maven.plugin.surefire.extensions.LegacyForkNodeFactory;
 import org.apache.maven.plugin.surefire.log.PluginConsoleLogger;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.surefire.api.cli.CommandLineOption;
-import org.apache.maven.surefire.api.util.DefaultScanResult;
 import org.apache.maven.surefire.booter.ClassLoaderConfiguration;
+import org.apache.maven.surefire.booter.Classpath;
 import org.apache.maven.surefire.booter.StartupConfiguration;
 import org.apache.maven.surefire.providerapi.ProviderInfo;
 
@@ -58,37 +60,31 @@ public final class SurefireMojoWrapper {
         return invokeMethod(mojo, getMethod("setupProperties"), SurefireProperties.class);
     }
 
-    public Object findModuleDescriptor(File jdkHome) throws MojoExecutionException {
-        return invokeMethod(mojo, getMethod("findModuleDescriptor", File.class), Object.class, jdkHome);
-    }
-
-    public StartupConfiguration createStartupConfiguration(DefaultScanResult scanResult, Platform platform,
-                                                           Object resolvedJavaModularity)
-            throws MojoExecutionException {
+    public StartupConfiguration createStartupConfiguration() throws MojoExecutionException {
         Class<?> testClassPathClass = findClass("org.apache.maven.plugin.surefire.TestClassPath");
         Object testClassPath = invokeMethod(mojo, getMethod("generateTestClasspath"), Object.class);
-        ProviderInfo provider = new EmptyProviderInfo();
         ClassLoaderConfiguration classLoaderConfiguration =
                 invokeMethod(mojo, getMethod("getClassLoaderConfiguration"), ClassLoaderConfiguration.class);
-        Class<?> resolvedPathClass = findClass("org.apache.maven.plugin.surefire.ResolvePathResultWrapper");
-        Method method = getMethod("createStartupConfiguration", ProviderInfo.class, boolean.class,
-                                  ClassLoaderConfiguration.class, DefaultScanResult.class, testClassPathClass,
-                                  Platform.class, resolvedPathClass);
-        return invokeMethod(mojo, method, StartupConfiguration.class, provider, true, classLoaderConfiguration,
-                            scanResult, testClassPath, platform, resolvedJavaModularity);
+        Method method = getMethod("newStartupConfigWithClasspath", ClassLoaderConfiguration.class, ProviderInfo.class,
+                                  testClassPathClass);
+        return invokeMethod(mojo, method, StartupConfiguration.class, classLoaderConfiguration, new EmptyProviderInfo(),
+                            testClassPath);
     }
 
-    public ForkConfiguration createForkConfiguration(Platform platform, Object resolvedJavaModularity)
+    public JarManifestForkConfiguration createForkConfiguration(Platform platform, File tempDir)
             throws MojoExecutionException {
-        Class<?> resolvedPathClass = findClass("org.apache.maven.plugin.surefire.ResolvePathResultWrapper");
-        Method method = getMethod("createForkConfiguration", Platform.class, resolvedPathClass);
-        return invokeMethod(mojo, method, ForkConfiguration.class, platform, resolvedJavaModularity);
+        Classpath bootClasspath = Classpath.emptyClasspath().addClassPathElementUrl(
+                PluginUtil.getClassPathElement(ScanForkMain.class).getAbsolutePath());
+        File workingDir = mojo.getWorkingDirectory() != null ? mojo.getWorkingDirectory() : mojo.getBasedir();
+        return new JarManifestForkConfiguration(bootClasspath, tempDir, null, workingDir,
+                                                getProject().getModel().getProperties(), mojo.getArgLine(),
+                                                mojo.getEnvironmentVariables(), getExcludedEnvironmentVariables(),
+                                                false, 1, true, platform, getConsoleLogger(),
+                                                new LegacyForkNodeFactory());
     }
 
-    public void forceForks() throws MojoExecutionException {
-        mojo.setForkMode("once");
-        setField(mojo, "forkCount", "1");
-        setField(mojo, "reuseForks", true);
+    public String[] getExcludedEnvironmentVariables() throws MojoExecutionException {
+        return invokeMethod(mojo, getMethod("getExcludedEnvironmentVariables"), String[].class);
     }
 
     public JdkAttributes getJdkAttributes() throws MojoExecutionException {
@@ -100,17 +96,19 @@ public final class SurefireMojoWrapper {
     }
 
     public void configure() throws MojoExecutionException {
+        // Force fork
+        mojo.setForkMode("once");
+        setField(mojo, "forkCount", "1");
+        setField(mojo, "reuseForks", true);
+        // Disable skips
+        mojo.setSkipTests(false);
+        mojo.setSkip(false);
+        mojo.setSkipExec(false);
+        // Initialize configuration values
         List<CommandLineOption> options = SurefireHelper.commandLineOptions(mojo.getSession(), getConsoleLogger());
         setField(mojo, "cli", options);
         invokeMethod(mojo, getMethod("setupStuff"), void.class);
-    }
-
-    public boolean verifyParameters() throws MojoExecutionException {
-        return invokeMethod(mojo, getMethod("verifyParameters"), Boolean.class);
-    }
-
-    public DefaultScanResult scanForTestClasses() throws MojoExecutionException {
-        return invokeMethod(mojo, getMethod("scanForTestClasses"), DefaultScanResult.class);
+        invokeMethod(mojo, getMethod("verifyParameters"), Boolean.class);
     }
 
     public void execute() throws MojoExecutionException, MojoFailureException {
