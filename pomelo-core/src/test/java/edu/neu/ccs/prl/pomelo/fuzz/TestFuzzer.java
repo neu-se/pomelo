@@ -7,10 +7,10 @@ import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 
 import java.util.Random;
 
-final class TestGuidance implements Fuzzer {
+final class TestFuzzer implements Fuzzer {
     private int numberOfInputs;
 
-    TestGuidance(int numberOfInputs) {
+    TestFuzzer(int numberOfInputs) {
         this.numberOfInputs = numberOfInputs;
     }
 

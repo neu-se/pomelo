@@ -16,7 +16,7 @@ public class FuzzingParameterizedRunnerTest {
         ParameterizedFieldExample.values.clear();
         new JUnitCore().run(ParameterizedFieldExample.class);
         List<String> expected = new LinkedList<>(ParameterizedFieldExample.values);
-        Fuzzer fuzzer = new TestGuidance(2);
+        Fuzzer fuzzer = new TestFuzzer(2);
         ParameterizedFieldExample.values.clear();
         Runner runner = new FuzzingParameterizedRunner(ParameterizedFieldExample.class, "test1", fuzzer);
         runner.run(new RunNotifier());

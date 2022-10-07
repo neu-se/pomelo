@@ -17,7 +17,7 @@ public class FuzzingJUnitParamsRunnerTest {
         JUnitParamsExample.values.clear();
         new JUnitCore().run(Request.method(JUnitParamsExample.class, "test1"));
         List<String> expected = new LinkedList<>(JUnitParamsExample.values);
-        Fuzzer fuzzer = new TestGuidance(2);
+        Fuzzer fuzzer = new TestFuzzer(2);
         JUnitParamsExample.values.clear();
         Runner runner = new FuzzingJUnitParamsRunner(JUnitParamsExample.class, "test1", fuzzer);
         runner.run(new RunNotifier());
