@@ -5,7 +5,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -58,7 +57,7 @@ public class ParameterizedFieldExample {
     }
 
     @Parameterized.Parameters
-    public static Collection<?> arguments() {
+    public static List<Object[]> arguments() {
         return Arrays.asList(new Object[][]{{"hello", 2}, {"", -2},});
     }
 }

@@ -31,4 +31,12 @@ public final class PluginUtil {
             throw new MojoExecutionException("Failed to create empty directory: " + dir, e);
         }
     }
+
+    public static File ensureNew(File file) throws MojoExecutionException {
+        try {
+            return FileUtil.ensureNew(file);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to create file: " + file, e);
+        }
+    }
 }

@@ -33,7 +33,8 @@ public class SurefireFuzzingMojo extends SurefirePlugin {
     public void execute() throws MojoExecutionException {
         getLog().info(String.format("Fuzzing %s#%s", testClass, testMethod));
         PluginUtil.createEmptyDirectory(outputDir);
-        File tempDir = new File(outputDir, "temp");
+        File tempDir = PluginUtil.createEmptyDirectory(new File(outputDir, "temp"));
         TestLauncher launcher = TestLauncher.create(new SurefireMojoWrapper(this, super::execute), tempDir);
+        // TODO
     }
 }

@@ -7,7 +7,6 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 public class FuzzingJUnitParamsRunner extends JUnitParamsRunner implements FuzzingTrialRunner {
-    private static final long SEED = 42;
     private final Fuzzer fuzzer;
     private final FrameworkMethod method;
     private Object[] arguments;
@@ -20,7 +19,7 @@ public class FuzzingJUnitParamsRunner extends JUnitParamsRunner implements Fuzzi
 
     @Override
     protected Statement childrenInvoker(RunNotifier notifier) {
-        return new FuzzingStatement(fuzzer, new ArgumentsGenerator(method.getMethod(), SEED), this);
+        return new FuzzingStatement(fuzzer, this, getTestClass().getJavaClass(), method.getName());
     }
 
     @Override

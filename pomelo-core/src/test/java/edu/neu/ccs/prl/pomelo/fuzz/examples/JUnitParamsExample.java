@@ -33,7 +33,6 @@ public class JUnitParamsExample {
         }
     }
 
-
     @Test
     @Parameters({"hi", "j"})
     public void testWithGenerator(@From(MyStringGenerator.class) String s) {

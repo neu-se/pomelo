@@ -1,8 +1,5 @@
 package edu.neu.ccs.prl.pomelo.fuzz;
 
-import com.pholser.junit.quickcheck.generator.GenerationStatus;
-import com.pholser.junit.quickcheck.random.SourceOfRandomness;
-
 public interface Fuzzer {
     void setUp(Class<?> testClass, String testMethodName);
 
@@ -10,13 +7,7 @@ public interface Fuzzer {
 
     boolean hasNext();
 
-    void handleGenerateFailure(Throwable error);
+    Object[] next();
 
-    void handleGenerateSuccess(Object[] arguments);
-
-    void handleResult(Object[] arguments, Throwable error);
-
-    GenerationStatus createGenerationStatus(SourceOfRandomness source);
-
-    SourceOfRandomness next();
+    void handleResult(Object[] arguments, Throwable failure);
 }

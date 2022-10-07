@@ -1,4 +1,4 @@
-package edu.neu.ccs.prl.pomelo.fuzz;
+package edu.neu.ccs.prl.pomelo.fuzz.quickcheck;
 
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.generator.Generator;
@@ -6,17 +6,20 @@ import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
 import com.pholser.junit.quickcheck.internal.generator.GeneratorRepository;
 import com.pholser.junit.quickcheck.internal.generator.ServiceLoaderGeneratorSource;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
+import edu.neu.ccs.prl.pomelo.fuzz.FuzzingTrialRunner;
+import edu.neu.ccs.prl.pomelo.util.ParameterizedTestType;
+import org.junit.runners.Parameterized;
+import org.junit.runners.model.FrameworkField;
+import org.junit.runners.model.TestClass;
 
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ArgumentsGenerator {
+    private static final long SEED = 41;
     private final List<Generator<?>> generators;
 
     public ArgumentsGenerator(List<Field> fields, long seed) {
@@ -40,10 +43,8 @@ public class ArgumentsGenerator {
         return generators;
     }
 
-    public Object[] generate(Fuzzer fuzzer) {
-        SourceOfRandomness source = fuzzer.next();
-        GenerationStatus genStatus = fuzzer.createGenerationStatus(source);
-        return generators.stream().map(g -> g.generate(source, genStatus)).toArray();
+    public Object[] generate(SourceOfRandomness source, GenerationStatus status) {
+        return generators.stream().map(g -> g.generate(source, status)).toArray();
     }
 
     private static Generator<?> createGenerator(GeneratorRepository repository, ParameterTypeContext context) {
@@ -54,5 +55,26 @@ public class ArgumentsGenerator {
             generator.configure(context.annotatedElement());
         }
         return generator;
+    }
+
+    public static ArgumentsGenerator create(Class<?> clazz, String methodName) {
+        TestClass testClass = new TestClass(clazz);
+        switch (ParameterizedTestType.findType(testClass.getJavaClass())) {
+            case JUNIT4_PARAMETERIZED:
+                List<FrameworkField> fields = testClass.getAnnotatedFields(Parameterized.Parameter.class);
+                return fields.isEmpty() ? new ArgumentsGenerator(testClass.getOnlyConstructor(), SEED) :
+                        new ArgumentsGenerator(getInjectableFields(testClass), SEED);
+            case JUNIT_PARAMS:
+                return new ArgumentsGenerator(FuzzingTrialRunner.getFrameworkMethod(testClass, methodName).getMethod(),
+                                              SEED);
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    private static List<Field> getInjectableFields(TestClass clazz) {
+        return clazz.getAnnotatedFields(Parameterized.Parameter.class).stream().map(FrameworkField::getField)
+                    .sorted(Comparator.comparing(f -> f.getAnnotation(Parameterized.Parameter.class).value()))
+                    .collect(Collectors.toList());
     }
 }

@@ -1,6 +1,5 @@
 package edu.neu.ccs.prl.pomelo;
 
-import edu.neu.ccs.prl.pomelo.util.FileUtil;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.surefire.AbstractSurefireMojo;
@@ -19,7 +18,6 @@ import org.apache.maven.surefire.booter.StartupConfiguration;
 import org.apache.maven.surefire.providerapi.ProviderInfo;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -70,11 +68,15 @@ public final class SurefireMojoWrapper {
                             testClassPath);
     }
 
+    public String getEffectiveDebugForkedProcess() throws MojoExecutionException {
+        return invokeMethod(mojo, getMethod("getEffectiveDebugForkedProcess"), String.class);
+    }
+
     public JarManifestForkConfiguration createForkConfiguration(Platform platform, File tempDir)
             throws MojoExecutionException {
         Classpath bootClasspath = Classpath.emptyClasspath();
         File workingDir = mojo.getWorkingDirectory() != null ? mojo.getWorkingDirectory() : mojo.getBasedir();
-        return new JarManifestForkConfiguration(bootClasspath, tempDir, null, workingDir,
+        return new JarManifestForkConfiguration(bootClasspath, tempDir, getEffectiveDebugForkedProcess(), workingDir,
                                                 getProject().getModel().getProperties(), mojo.getArgLine(),
                                                 mojo.getEnvironmentVariables(), getExcludedEnvironmentVariables(),
                                                 false, 1, true, platform, getConsoleLogger(),
@@ -115,14 +117,6 @@ public final class SurefireMojoWrapper {
 
     public MavenProject getProject() {
         return mojo.getProject();
-    }
-
-    public static File ensureNew(File file) throws MojoExecutionException {
-        try {
-            return FileUtil.ensureNew(file);
-        } catch (IOException e) {
-            throw new MojoExecutionException("Failed to create file: " + file, e);
-        }
     }
 
     private static void setField(AbstractSurefireMojo mojo, String fieldName, Object value)

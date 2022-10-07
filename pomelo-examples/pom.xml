@@ -29,7 +29,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <reportsDirectory>${project.build.directory}/pomelo</reportsDirectory>
                     <argLine>-Dpomelo.examples.value0=hello</argLine>
                     <environmentVariables>
                         <pomelo_examples_value1>world</pomelo_examples_value1>

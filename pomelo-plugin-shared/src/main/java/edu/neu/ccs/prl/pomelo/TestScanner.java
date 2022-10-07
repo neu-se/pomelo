@@ -1,8 +1,9 @@
 package edu.neu.ccs.prl.pomelo;
 
+import edu.neu.ccs.prl.meringue.ProcessUtil;
 import edu.neu.ccs.prl.pomelo.scan.PomeloJUnitListener;
-import edu.neu.ccs.prl.pomelo.scan.TestRecord;
 import edu.neu.ccs.prl.pomelo.scan.ReportEntry;
+import edu.neu.ccs.prl.pomelo.scan.TestRecord;
 import edu.neu.ccs.prl.pomelo.scan.TestResult;
 import edu.neu.ccs.prl.pomelo.util.AppendingWriter;
 import org.apache.maven.plugin.MojoExecution;
@@ -32,7 +33,8 @@ public class TestScanner {
     }
 
     public void scan() throws MojoExecutionException, MojoFailureException {
-        writeReportEntries(processRecords(performInitialScan()));
+        File tempDir = PluginUtil.createEmptyDirectory(new File(outputDir, "temp"));
+        writeReportEntries(processRecords(tempDir, performInitialScan(tempDir)));
     }
 
     private void writeReportEntries(List<ReportEntry> entries) throws MojoExecutionException {
@@ -43,8 +45,8 @@ public class TestScanner {
         }
     }
 
-    private List<TestRecord> performInitialScan() throws MojoExecutionException, MojoFailureException {
-        File initialReport = SurefireMojoWrapper.ensureNew(new File(outputDir, "temp-scan.txt"));
+    private List<TestRecord> performInitialScan(File tempDir) throws MojoExecutionException, MojoFailureException {
+        File initialReport = PluginUtil.ensureNew(new File(tempDir, "temp-scan.txt"));
         wrapper.getProperties().put("listener", PomeloJUnitListener.class.getName());
         Properties systemProperties = wrapper.getSystemProperties();
         systemProperties.put("pomelo.scan.report", initialReport.getAbsolutePath());
@@ -52,15 +54,16 @@ public class TestScanner {
         return readRecords(initialReport);
     }
 
-    private List<ReportEntry> processRecords(List<TestRecord> records) {
+    private List<ReportEntry> processRecords(File tempDir, List<TestRecord> records) throws MojoExecutionException {
+        TestLauncher launcher = TestLauncher.create(wrapper, tempDir);
         List<ReportEntry> result = new ArrayList<>(records.size());
         for (TestRecord record : records) {
             result.add(new ReportEntry(wrapper.getProject().getId(), pluginName, execution.getExecutionId(),
                                        record.getTestClassName(), record.getTestMethodName(),
                                        record.getRunnerClassName(), record.isUnambiguous(),
                                        record.passed() ? TestResult.PASSED : TestResult.FAILED,
-                                       record.passed() && record.isUnambiguous() ? performIsolatedRun(record) :
-                                               TestResult.NONE));
+                                       record.passed() && record.isUnambiguous() ?
+                                               performIsolatedRun(launcher, record, tempDir) : TestResult.NONE));
         }
         return result;
     }
@@ -73,8 +76,27 @@ public class TestScanner {
         }
     }
 
-    private TestResult performIsolatedRun(TestRecord record) {
-        // TODO
-        return TestResult.NONE;
+    private TestResult performIsolatedRun(TestLauncher launcher, TestRecord record, File tempDir)
+            throws MojoExecutionException {
+        File report = PluginUtil.ensureNew(new File(tempDir, "temp-scan.txt"));
+        Process process = launcher.launchScan(record, report);
+        try {
+            if (ProcessUtil.waitFor(process) != 0) {
+                return TestResult.ERROR;
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return TestResult.ERROR;
+        }
+        List<TestRecord> records = readRecords(report);
+        if (records.size() == 1) {
+            if (records.get(0).equals(record)) {
+                return TestResult.PASSED;
+            } else {
+                return TestResult.FAILED;
+            }
+        } else {
+            return TestResult.ERROR;
+        }
     }
 }

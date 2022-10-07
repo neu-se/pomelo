@@ -7,32 +7,35 @@ import org.junit.runners.model.Statement;
 
 class FuzzingStatement extends Statement {
     private final Fuzzer fuzzer;
-    private final ArgumentsGenerator generator;
     private final FuzzingTrialRunner runner;
+    private final Class<?> testClass;
+    private final String testMethodName;
 
-    public FuzzingStatement(Fuzzer fuzzer, ArgumentsGenerator generator, FuzzingTrialRunner runner) {
-        if (fuzzer == null || generator == null || runner == null) {
+    public FuzzingStatement(Fuzzer fuzzer, FuzzingTrialRunner runner, Class<?> testClass, String testMethodName) {
+        if (fuzzer == null || runner == null || testClass == null || testMethodName == null) {
             throw new NullPointerException();
         }
         this.fuzzer = fuzzer;
-        this.generator = generator;
         this.runner = runner;
+        this.testClass = testClass;
+        this.testMethodName = testMethodName;
     }
 
     public void evaluate() throws InitializationError {
-        while (fuzzer.hasNext()) {
-            Object[] arguments;
-            try {
-                arguments = generator.generate(fuzzer);
-                fuzzer.handleGenerateSuccess(arguments);
-            } catch (Throwable t) {
-                fuzzer.handleGenerateFailure(t);
-                continue;
+        try {
+            fuzzer.setUp(testClass, testMethodName);
+            while (fuzzer.hasNext()) {
+                Object[] arguments = fuzzer.next();
+                if (arguments != null) {
+                    FuzzingNotifier notifier = new FuzzingNotifier();
+                    runner.runTrial(notifier, arguments);
+                    fuzzer.handleResult(arguments, notifier.failure);
+                }
             }
-            FuzzingNotifier notifier = new FuzzingNotifier();
-            runner.runTrial(notifier, arguments);
-            fuzzer.handleResult(arguments, notifier.failure);
+        } finally {
+            fuzzer.tearDown();
         }
+
     }
 
     private static final class FuzzingNotifier extends RunNotifier {

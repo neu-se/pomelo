@@ -1,6 +1,10 @@
 package edu.neu.ccs.prl.pomelo;
 
 import edu.neu.ccs.prl.meringue.JvmLauncher;
+import edu.neu.ccs.prl.meringue.ProcessUtil;
+import edu.neu.ccs.prl.pomelo.scan.ScanForkMain;
+import edu.neu.ccs.prl.pomelo.scan.TestRecord;
+import edu.neu.ccs.prl.pomelo.util.SystemPropertyUtil;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.surefire.JdkAttributes;
 import org.apache.maven.plugin.surefire.booterclient.ForkConfiguration;
@@ -11,36 +15,76 @@ import org.apache.maven.surefire.shared.utils.cli.Commandline;
 import org.apache.maven.surefire.shared.utils.cli.ShutdownHookUtils;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Properties;
+import java.io.IOException;
+import java.util.*;
 
 public class TestLauncher {
     private final File workingDir;
     private final String[] environment;
-    private final Properties javaSystemProperties;
     private final JvmLauncher.JarLauncher launcher;
+    private final File propertiesFile;
 
-    public TestLauncher(File workingDir, String[] environment, Properties javaSystemProperties,
-                        JvmLauncher.JarLauncher launcher) {
-        if (environment == null || javaSystemProperties == null || launcher == null) {
+    TestLauncher(File workingDir, String[] environment, File propertiesFile, JvmLauncher.JarLauncher launcher) {
+        if (environment == null || launcher == null) {
             throw new NullPointerException();
+        }
+        if (!propertiesFile.isFile()) {
+            throw new IllegalArgumentException("Properties file must be a file: " + propertiesFile);
         }
         if (workingDir != null && !workingDir.isDirectory()) {
             throw new IllegalArgumentException("Working directory must be a directory: " + workingDir);
         }
         this.workingDir = workingDir;
         this.environment = environment;
-        this.javaSystemProperties = javaSystemProperties;
+        this.propertiesFile = propertiesFile;
         this.launcher = launcher;
+    }
+
+    public Process launchScan(TestRecord record, File reportFile) throws MojoExecutionException {
+        String[] arguments = {record.getTestClassName(), record.getTestMethodName(),
+                reportFile.getAbsolutePath(),
+                propertiesFile.getAbsolutePath()};
+        JvmLauncher mainLauncher =
+                new JvmLauncher.JavaMainLauncher(launcher.getJavaExec(), ScanForkMain.class.getName(),
+                                                 launcher.getOptions(), true, arguments)
+                        .appendOptions("-cp", launcher.getJar().getAbsolutePath());
+        ProcessBuilder builder = new ProcessBuilder(mainLauncher.createCommand()).directory(workingDir);
+        setEnvironment(builder, environment);
+        try {
+            return ProcessUtil.start(builder, true);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to create test fork", e);
+        }
+    }
+
+    private static void setEnvironment(ProcessBuilder builder, String[] environment) {
+        Map<String, String> map = builder.environment();
+        map.clear();
+        for (String entry : environment) {
+            int index = entry.indexOf('=');
+            if (index != -1) {
+                map.put(entry.substring(0, index), entry.substring(index + 1));
+            }
+        }
     }
 
     public static TestLauncher create(SurefireMojoWrapper mojo, File outputDir) throws MojoExecutionException {
         JdkAttributes jdkAttributes = mojo.getJdkAttributes();
         Commandline commandline = createCommandline(mojo, jdkAttributes, outputDir);
+        File propertiesFile = writeProperties(mojo, outputDir);
         return new TestLauncher(commandline.getWorkingDirectory(), commandline.getEnvironmentVariables(),
-                                mojo.getSystemProperties(), extractJarLauncher(commandline, jdkAttributes));
+                                propertiesFile, extractJarLauncher(commandline, jdkAttributes));
+    }
+
+    private static File writeProperties(SurefireMojoWrapper mojo, File outputDir) throws MojoExecutionException {
+        Properties javaSystemProperties = mojo.setupProperties();
+        File propsFile = PluginUtil.ensureNew(new File(outputDir, "pomelo.properties"));
+        try {
+            SystemPropertyUtil.store(propsFile, "system", javaSystemProperties);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to write properties file: " + propsFile, e);
+        }
+        return propsFile;
     }
 
     private static JvmLauncher.JarLauncher extractJarLauncher(Commandline commandline, JdkAttributes jdkAttributes)
