@@ -32,8 +32,8 @@ public class SurefireFuzzingMojo extends SurefirePlugin {
     @Override
     public void execute() throws MojoExecutionException {
         getLog().info(String.format("Fuzzing %s#%s", testClass, testMethod));
-        TestJvmLauncher launcher =
-                new TestJvmLauncher(testClass, testMethod, outputDir, new SurefireMojoWrapper(this, super::execute));
-        launcher.execute();
+        PluginUtil.createEmptyDirectory(outputDir);
+        File tempDir = new File(outputDir, "temp");
+        TestLauncher launcher = TestLauncher.create(new SurefireMojoWrapper(this, super::execute), tempDir);
     }
 }
