@@ -23,12 +23,12 @@ public final class FuzzForkMain {
         //run(testClass, testMethodName, outputDir);
     }
 
-    public static void run(Class<?> testClass, String testMethodName, Guidance guidance) {
+    public static void run(Class<?> testClass, String testMethodName, Fuzzer fuzzer) {
         Class<? extends Runner> runnerClass = getRunnerClass(testClass);
         if (runnerClass.equals(Parameterized.class)) {
-            run(FuzzingParameterizedRunner::new, testClass, testMethodName, guidance);
+            run(FuzzingParameterizedRunner::new, testClass, testMethodName, fuzzer);
         } else if (runnerClass.equals(JUnitParamsRunner.class)) {
-            run(FuzzingJUnitParamsRunner::new, testClass, testMethodName, guidance);
+            run(FuzzingJUnitParamsRunner::new, testClass, testMethodName, fuzzer);
         } else {
             throw new IllegalArgumentException("Unknown test class runner type:" + runnerClass);
         }
@@ -42,19 +42,19 @@ public final class FuzzForkMain {
         return annotation.value();
     }
 
-    static void run(FuzzingRunnerProducer builder, Class<?> clazz, String methodName, Guidance guidance) {
+    static void run(FuzzingRunnerProducer builder, Class<?> clazz, String methodName, Fuzzer fuzzer) {
         try {
-            Runner runner = build(builder, clazz, methodName, guidance);
-            guidance.setUp(clazz, methodName);
+            Runner runner = build(builder, clazz, methodName, fuzzer);
+            fuzzer.setUp(clazz, methodName);
             runner.run(new RunNotifier());
         } finally {
-            guidance.tearDown();
+            fuzzer.tearDown();
         }
     }
 
-    static Runner build(FuzzingRunnerProducer builder, Class<?> clazz, String methodName, Guidance guidance) {
+    static Runner build(FuzzingRunnerProducer builder, Class<?> clazz, String methodName, Fuzzer fuzzer) {
         try {
-            return builder.produce(clazz, methodName, guidance);
+            return builder.produce(clazz, methodName, fuzzer);
         } catch (Throwable e) {
             throw new IllegalArgumentException("Unable to create JUnit runner for test: " + clazz + " " + methodName,
                                                e);

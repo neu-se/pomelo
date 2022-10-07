@@ -3,7 +3,7 @@ package edu.neu.ccs.prl.pomelo.fuzz;
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 
-public interface Guidance {
+public interface Fuzzer {
     void setUp(Class<?> testClass, String testMethodName);
 
     void tearDown();

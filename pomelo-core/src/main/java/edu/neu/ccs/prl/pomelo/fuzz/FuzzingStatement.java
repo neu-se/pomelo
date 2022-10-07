@@ -6,32 +6,32 @@ import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
 class FuzzingStatement extends Statement {
-    private final Guidance guidance;
+    private final Fuzzer fuzzer;
     private final ArgumentsGenerator generator;
     private final FuzzingTrialRunner runner;
 
-    public FuzzingStatement(Guidance guidance, ArgumentsGenerator generator, FuzzingTrialRunner runner) {
-        if (guidance == null || generator == null || runner == null) {
+    public FuzzingStatement(Fuzzer fuzzer, ArgumentsGenerator generator, FuzzingTrialRunner runner) {
+        if (fuzzer == null || generator == null || runner == null) {
             throw new NullPointerException();
         }
-        this.guidance = guidance;
+        this.fuzzer = fuzzer;
         this.generator = generator;
         this.runner = runner;
     }
 
     public void evaluate() throws InitializationError {
-        while (guidance.hasNext()) {
+        while (fuzzer.hasNext()) {
             Object[] arguments;
             try {
-                arguments = generator.generate(guidance);
-                guidance.handleGenerateSuccess(arguments);
+                arguments = generator.generate(fuzzer);
+                fuzzer.handleGenerateSuccess(arguments);
             } catch (Throwable t) {
-                guidance.handleGenerateFailure(t);
+                fuzzer.handleGenerateFailure(t);
                 continue;
             }
             FuzzingNotifier notifier = new FuzzingNotifier();
             runner.runTrial(notifier, arguments);
-            guidance.handleResult(arguments, notifier.failure);
+            fuzzer.handleResult(arguments, notifier.failure);
         }
     }
 

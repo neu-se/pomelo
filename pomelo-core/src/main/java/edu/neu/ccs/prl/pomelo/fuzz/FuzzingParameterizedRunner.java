@@ -14,12 +14,12 @@ import java.util.stream.Collectors;
 
 public class FuzzingParameterizedRunner extends Parameterized implements FuzzingTrialRunner {
     private static final long SEED = 42;
-    private final Guidance guidance;
+    private final Fuzzer fuzzer;
     private final FrameworkMethod method;
 
-    public FuzzingParameterizedRunner(Class<?> clazz, String methodName, Guidance guidance) throws Throwable {
+    public FuzzingParameterizedRunner(Class<?> clazz, String methodName, Fuzzer fuzzer) throws Throwable {
         super(clazz);
-        this.guidance = guidance;
+        this.fuzzer = fuzzer;
         this.method = FuzzingTrialRunner.getFrameworkMethod(getTestClass(), methodName);
     }
 
@@ -31,7 +31,7 @@ public class FuzzingParameterizedRunner extends Parameterized implements Fuzzing
         } else {
             generator = new ArgumentsGenerator(getInjectableFields(getTestClass()), SEED);
         }
-        return new FuzzingStatement(guidance, generator, this);
+        return new FuzzingStatement(fuzzer, generator, this);
     }
 
     @Override

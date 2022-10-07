@@ -40,9 +40,9 @@ public class ArgumentsGenerator {
         return generators;
     }
 
-    public Object[] generate(Guidance guidance) {
-        SourceOfRandomness source = guidance.next();
-        GenerationStatus genStatus = guidance.createGenerationStatus(source);
+    public Object[] generate(Fuzzer fuzzer) {
+        SourceOfRandomness source = fuzzer.next();
+        GenerationStatus genStatus = fuzzer.createGenerationStatus(source);
         return generators.stream().map(g -> g.generate(source, genStatus)).toArray();
     }
 

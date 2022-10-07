@@ -8,19 +8,19 @@ import org.junit.runners.model.Statement;
 
 public class FuzzingJUnitParamsRunner extends JUnitParamsRunner implements FuzzingTrialRunner {
     private static final long SEED = 42;
-    private final Guidance guidance;
+    private final Fuzzer fuzzer;
     private final FrameworkMethod method;
     private Object[] arguments;
 
-    public FuzzingJUnitParamsRunner(Class<?> clazz, String methodName, Guidance guidance) throws Throwable {
+    public FuzzingJUnitParamsRunner(Class<?> clazz, String methodName, Fuzzer fuzzer) throws Throwable {
         super(clazz);
-        this.guidance = guidance;
+        this.fuzzer = fuzzer;
         this.method = FuzzingTrialRunner.getFrameworkMethod(getTestClass(), methodName);
     }
 
     @Override
     protected Statement childrenInvoker(RunNotifier notifier) {
-        return new FuzzingStatement(guidance, new ArgumentsGenerator(method.getMethod(), SEED), this);
+        return new FuzzingStatement(fuzzer, new ArgumentsGenerator(method.getMethod(), SEED), this);
     }
 
     @Override
