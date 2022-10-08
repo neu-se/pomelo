@@ -15,7 +15,7 @@ jobs:
         with:
           path: pomelo
       - name: Build Pomelo
-        uses: ./.github/actions/build
+        uses: ./pomelo/.github/actions/build
         with:
           project: pomelo
           skip_tests: true
