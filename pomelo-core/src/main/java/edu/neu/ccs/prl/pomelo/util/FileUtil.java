@@ -98,7 +98,9 @@ public final class FileUtil {
     }
 
     public static File ensureNew(File file) throws IOException {
-        FileUtil.ensureDirectory(file.getParentFile());
+        if(file.getParentFile() != null) {
+            FileUtil.ensureDirectory(file.getParentFile());
+        }
         FileUtil.delete(file);
         if (!file.createNewFile()) {
             throw new IOException("Failed" +
