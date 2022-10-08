@@ -21,8 +21,8 @@ jobs:
           skip_tests: true
       - name: Download Maven and install Pomelo
         env:
-          MAVEN_VERSION=3.8.6
-          POMELO_EXTENSION_JAR=h
+          MAVEN_VERSION: 3.8.6
+          POMELO_EXTENSION_JAR: pomelo/pomelo-maven-lifecycle/target/pomelo-maven-lifecycle-1.0.0-SNAPSHOT.jar
         run: |
           wget "https://dlcdn.apache.org/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz"
           mkdir maven
