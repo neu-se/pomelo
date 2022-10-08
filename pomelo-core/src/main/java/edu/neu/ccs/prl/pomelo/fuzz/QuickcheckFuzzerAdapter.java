@@ -1,25 +1,24 @@
-package edu.neu.ccs.prl.pomelo.fuzz.quickcheck;
+package edu.neu.ccs.prl.pomelo.fuzz;
 
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
-import edu.neu.ccs.prl.pomelo.fuzz.Fuzzer;
+import edu.neu.ccs.prl.pomelo.test.ParameterSupplier;
 
-public class QuickcheckFuzzerAdapter implements Fuzzer {
+public class QuickcheckFuzzerAdapter implements ParameterSupplier {
     private final QuickcheckFuzzer fuzzer;
-    private ArgumentsGenerator generator;
+    private final ArgumentsGenerator generator;
 
-    public QuickcheckFuzzerAdapter(QuickcheckFuzzer fuzzer) {
+    public QuickcheckFuzzerAdapter(QuickcheckFuzzer fuzzer, Class<?> testClass, String testMethodName) {
         if (fuzzer == null) {
             throw new NullPointerException();
         }
         this.fuzzer = fuzzer;
+        this.generator = ArgumentsGenerator.create(testClass, testMethodName);
     }
 
-    @Override
-    public void setUp(Class<?> testClass, String testMethodName) {
-        generator = ArgumentsGenerator.create(testClass, testMethodName);
+    public void setUp() {
+        fuzzer.setUp();
     }
 
-    @Override
     public void tearDown() {
         fuzzer.tearDown();
     }
@@ -40,10 +39,5 @@ public class QuickcheckFuzzerAdapter implements Fuzzer {
             fuzzer.handleGenerateFailure(t);
             return null;
         }
-    }
-
-    @Override
-    public void handleResult(Object[] arguments, Throwable failure) {
-        fuzzer.handleResult(arguments, failure);
     }
 }

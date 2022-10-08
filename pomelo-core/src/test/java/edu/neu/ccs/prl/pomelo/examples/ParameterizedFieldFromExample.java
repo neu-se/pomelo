@@ -1,4 +1,4 @@
-package edu.neu.ccs.prl.pomelo.fuzz.examples;
+package edu.neu.ccs.prl.pomelo.examples;
 
 import com.pholser.junit.quickcheck.From;
 import org.junit.Test;

@@ -7,7 +7,6 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
 
 public final class AppendingWriter {
     private final File file;
@@ -30,9 +29,5 @@ public final class AppendingWriter {
                 }
             }
         }
-    }
-
-    public void appendAll(String... entries) throws IOException {
-        appendAll(Arrays.asList(entries));
     }
 }

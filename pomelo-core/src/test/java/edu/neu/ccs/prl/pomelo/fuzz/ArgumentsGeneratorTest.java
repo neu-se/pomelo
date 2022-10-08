@@ -1,7 +1,7 @@
-package edu.neu.ccs.prl.pomelo.fuzz.quickcheck;
+package edu.neu.ccs.prl.pomelo.fuzz;
 
 import com.pholser.junit.quickcheck.generator.Generator;
-import edu.neu.ccs.prl.pomelo.fuzz.examples.*;
+import edu.neu.ccs.prl.pomelo.examples.*;
 import org.junit.Assert;
 import org.junit.Test;
 

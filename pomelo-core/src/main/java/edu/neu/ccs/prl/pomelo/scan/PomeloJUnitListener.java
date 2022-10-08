@@ -1,7 +1,7 @@
 package edu.neu.ccs.prl.pomelo.scan;
 
+import edu.neu.ccs.prl.pomelo.test.ParameterizedTestType;
 import edu.neu.ccs.prl.pomelo.util.AppendingWriter;
-import edu.neu.ccs.prl.pomelo.util.ParameterizedTestType;
 import org.junit.Test;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
@@ -33,8 +33,7 @@ public class PomeloJUnitListener extends RunListener {
 
     @Override
     public synchronized void testFinished(Description description) {
-        if (description.getMethodName() != null &&
-                ParameterizedTestType.isParameterizedTest(description.getTestClass())) {
+        if (isParameterizedTest(description)) {
             parameterizedTests.add(description);
         }
     }
@@ -42,8 +41,7 @@ public class PomeloJUnitListener extends RunListener {
     @Override
     public synchronized void testFailure(Failure failure) {
         Description description = failure.getDescription();
-        if (description.getMethodName() != null &&
-                ParameterizedTestType.isParameterizedTest(description.getTestClass())) {
+        if (isParameterizedTest(description)) {
             failingParameterizedTests.add(description);
         }
     }
@@ -114,5 +112,10 @@ public class PomeloJUnitListener extends RunListener {
             methodName = methodName.substring(0, i);
         }
         return methodName;
+    }
+
+    private static boolean isParameterizedTest(Description d) {
+        return d.getTestClass() != null && d.getMethodName() != null &&
+                ParameterizedTestType.isParameterizedTest(d.getTestClass());
     }
 }

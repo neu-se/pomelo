@@ -1,4 +1,4 @@
-package edu.neu.ccs.prl.pomelo.fuzz.quickcheck;
+package edu.neu.ccs.prl.pomelo.fuzz;
 
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.generator.Generator;
@@ -6,8 +6,8 @@ import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
 import com.pholser.junit.quickcheck.internal.generator.GeneratorRepository;
 import com.pholser.junit.quickcheck.internal.generator.ServiceLoaderGeneratorSource;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
-import edu.neu.ccs.prl.pomelo.fuzz.FuzzingTrialRunner;
-import edu.neu.ccs.prl.pomelo.util.ParameterizedTestType;
+import edu.neu.ccs.prl.pomelo.test.JUnitTestUtil;
+import edu.neu.ccs.prl.pomelo.test.ParameterizedTestType;
 import org.junit.runners.Parameterized;
 import org.junit.runners.model.FrameworkField;
 import org.junit.runners.model.TestClass;
@@ -59,13 +59,13 @@ public class ArgumentsGenerator {
 
     public static ArgumentsGenerator create(Class<?> clazz, String methodName) {
         TestClass testClass = new TestClass(clazz);
-        switch (ParameterizedTestType.findType(testClass.getJavaClass())) {
+        switch (ParameterizedTestType.getType(testClass.getJavaClass())) {
             case JUNIT4_PARAMETERIZED:
                 List<FrameworkField> fields = testClass.getAnnotatedFields(Parameterized.Parameter.class);
                 return fields.isEmpty() ? new ArgumentsGenerator(testClass.getOnlyConstructor(), SEED) :
                         new ArgumentsGenerator(getInjectableFields(testClass), SEED);
             case JUNIT_PARAMS:
-                return new ArgumentsGenerator(FuzzingTrialRunner.getFrameworkMethod(testClass, methodName).getMethod(),
+                return new ArgumentsGenerator(JUnitTestUtil.findFrameworkMethod(testClass, methodName).getMethod(),
                                               SEED);
             default:
                 throw new AssertionError();

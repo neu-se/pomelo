@@ -1,4 +1,4 @@
-package edu.neu.ccs.prl.pomelo.fuzz.examples;
+package edu.neu.ccs.prl.pomelo.examples;
 
 import org.junit.*;
 import org.junit.runner.RunWith;

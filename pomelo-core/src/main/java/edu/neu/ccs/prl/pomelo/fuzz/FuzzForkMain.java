@@ -1,7 +1,7 @@
 package edu.neu.ccs.prl.pomelo.fuzz;
 
-import edu.neu.ccs.prl.pomelo.util.ParameterizedTestType;
-import org.junit.runner.Runner;
+import edu.neu.ccs.prl.pomelo.test.ParameterizedRunner;
+import edu.neu.ccs.prl.pomelo.test.ParameterizedTestType;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
 
@@ -19,28 +19,22 @@ public final class FuzzForkMain {
         //run(testClass, testMethodName, outputDir);
     }
 
-    public static void run(Class<?> testClass, String testMethodName, Fuzzer fuzzer, RunListener... listeners) {
-        Runner runner = createRunner(testClass, testMethodName, fuzzer);
+    public static void run(Class<?> testClass, String testMethodName, Fuzzer fuzzer, RunListener... listeners)
+            throws Throwable {
+        ParameterizedRunner runner = ParameterizedTestType.getType(testClass)
+                                                          .wrap(testClass, testMethodName)
+                                                          .createParameterizedRunner(fuzzer);
         RunNotifier notifier = new RunNotifier();
         for (RunListener listener : listeners) {
             notifier.addListener(listener);
         }
-        runner.run(notifier);
-    }
-
-    static Runner createRunner(Class<?> testClass, String testMethodName, Fuzzer fuzzer) {
+        // TODO connect failure listener to fuzzer
+        notifier.addListener(new FailureListener());
         try {
-            switch (ParameterizedTestType.findType(testClass)) {
-                case JUNIT4_PARAMETERIZED:
-                    return new FuzzingParameterizedRunner(testClass, testMethodName, fuzzer);
-                case JUNIT_PARAMS:
-                    return new FuzzingJUnitParamsRunner(testClass, testMethodName, fuzzer);
-                default:
-                    throw new AssertionError();
-            }
-        } catch (Throwable e) {
-            throw new IllegalArgumentException(
-                    "Unable to create JUnit runner for test: " + testClass + " " + testMethodName, e);
+            fuzzer.setUp();
+            runner.run(notifier);
+        } finally {
+            fuzzer.tearDown();
         }
     }
 }

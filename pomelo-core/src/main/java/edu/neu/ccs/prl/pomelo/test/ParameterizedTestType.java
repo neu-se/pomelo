@@ -1,30 +1,33 @@
-package edu.neu.ccs.prl.pomelo.util;
-
-import junitparams.JUnitParamsRunner;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+package edu.neu.ccs.prl.pomelo.test;
 
 public enum ParameterizedTestType {
     JUNIT4_PARAMETERIZED() {
         @Override
         public boolean matches(Class<?> clazz) {
-            return clazz.isAnnotationPresent(RunWith.class) &&
-                    clazz.getAnnotation(RunWith.class).value().equals(Parameterized.class);
+            return JUnit4ParameterizedWrapper.isType(clazz);
+        }
+
+        @Override
+        public ParameterizedTestWrapper wrap(Class<?> clazz, String methodName) {
+            return new JUnit4ParameterizedWrapper(clazz, methodName);
         }
     }, JUNIT_PARAMS() {
         @Override
         public boolean matches(Class<?> clazz) {
-            return clazz.isAnnotationPresent(RunWith.class) &&
-                    clazz.getAnnotation(RunWith.class).value().equals(JUnitParamsRunner.class);
+            return JUnitParamsWrapper.isType(clazz);
+        }
+
+        @Override
+        public ParameterizedTestWrapper wrap(Class<?> clazz, String methodName) {
+            return new JUnitParamsWrapper(clazz, methodName);
         }
     };
 
     public abstract boolean matches(Class<?> clazz);
 
+    public abstract ParameterizedTestWrapper wrap(Class<?> clazz, String methodName);
+
     public static boolean isParameterizedTest(Class<?> clazz) {
-        if (clazz == null) {
-            return false;
-        }
         for (ParameterizedTestType type : values()) {
             if (type.matches(clazz)) {
                 return true;
@@ -33,7 +36,7 @@ public enum ParameterizedTestType {
         return false;
     }
 
-    public static ParameterizedTestType findType(Class<?> clazz) {
+    public static ParameterizedTestType getType(Class<?> clazz) {
         for (ParameterizedTestType type : values()) {
             if (type.matches(clazz)) {
                 return type;

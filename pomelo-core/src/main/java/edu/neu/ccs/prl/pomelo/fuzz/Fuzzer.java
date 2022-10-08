@@ -1,13 +1,11 @@
 package edu.neu.ccs.prl.pomelo.fuzz;
 
-public interface Fuzzer {
-    void setUp(Class<?> testClass, String testMethodName);
+import edu.neu.ccs.prl.pomelo.test.ParameterSupplier;
+
+public interface Fuzzer extends ParameterSupplier {
+    void setUp();
 
     void tearDown();
-
-    boolean hasNext();
-
-    Object[] next();
 
     void handleResult(Object[] arguments, Throwable failure);
 }

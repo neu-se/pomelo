@@ -1,10 +1,10 @@
-package edu.neu.ccs.prl.pomelo.fuzz.quickcheck;
+package edu.neu.ccs.prl.pomelo.fuzz;
 
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 
 public interface QuickcheckFuzzer {
-    void setUp(Class<?> testClass, String testMethodName);
+    void setUp();
 
     void tearDown();
 
@@ -14,7 +14,11 @@ public interface QuickcheckFuzzer {
 
     void handleGenerateSuccess(Object[] arguments);
 
-    void handleResult(Object[] arguments, Throwable error);
+    void handleTestSuccess();
+
+    void handleTestFailure(Throwable failure);
+
+    void handleTestAssumptionFailure(Throwable failure);
 
     GenerationStatus createGenerationStatus(SourceOfRandomness source);
 

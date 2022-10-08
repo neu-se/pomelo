@@ -1,4 +1,4 @@
-package edu.neu.ccs.prl.pomelo.fuzz.examples;
+package edu.neu.ccs.prl.pomelo.examples;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,9 +23,6 @@ public class ParameterizedConstructorExample {
         System.out.println((param1 == 42) ? param2 : "Hello world");
     }
 
-    @Test
-    public void test2() {
-    }
 
     @Parameterized.Parameters
     public static Collection<?> arguments() {
