@@ -1,0 +1,50 @@
+name: Scan a maven project
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: 'GitHub repository for the maven project.'
+        required: true
+        type: string
+jobs:
+  scan:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout Pomelo
+        uses: actions/checkout@v3
+        with:
+          path: pomelo
+      - name: Build Pomelo
+        uses: pomelo/.github/actions/build
+        with:
+          project: pomelo
+          skip_tests: true
+      - name: Download Maven and install Pomelo
+        env:
+          MAVEN_VERSION=3.8.6
+          POMELO_EXTENSION_JAR=h
+        run: |
+          wget "https://dlcdn.apache.org/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz"
+          mkdir maven
+          tar -xf apache-maven-$MAVEN_VERSION-bin.tar.gz -C maven --strip-components 1
+          mv $POMELO_EXTENSION_JAR maven/lib/ext
+        shell: bash
+      - name: Checkout project
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ github.event.inputs.repository }}
+          path: project
+      - name: Scan project
+        env:
+          JAVA_HOME: /usr/lib/jvm/jdk1.8.0_301/
+          INST_HOME: /usr/lib/jvm/jdk1.8.0_301/jre/
+          REPORT: report.txt
+          MAVEN_OPTS: >
+            -Dhttps.protocols=TLSv1.2 -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true
+            -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN
+            -DinstallAtEnd=true
+          MAVEN_CLI_OPTS: --batch-mode --errors --fail-never --show-version
+        run: |
+          maven/bin/mvn -f project -Dpomelo.phase=scan -Dpomelo.scan.report=$REPORT $MAVEN_CLI_OPTS install
+          cat report.txt
+        shell: bash
