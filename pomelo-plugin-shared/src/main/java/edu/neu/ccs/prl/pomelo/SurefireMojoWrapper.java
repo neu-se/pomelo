@@ -35,6 +35,9 @@ public final class SurefireMojoWrapper {
         this.execute = execute;
     }
 
+    public boolean effectiveIsEnableAssertions() {
+        return mojo.effectiveIsEnableAssertions();
+    }
     public Properties getProperties() throws MojoExecutionException {
         Properties properties = invokeMethod(mojo, getMethod("getProperties"), Properties.class);
         if (properties == null) {

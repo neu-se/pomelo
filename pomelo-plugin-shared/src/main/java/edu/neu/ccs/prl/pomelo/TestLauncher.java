@@ -69,11 +69,12 @@ public class TestLauncher {
     }
 
     public static TestLauncher create(SurefireMojoWrapper mojo, File outputDir) throws MojoExecutionException {
+        boolean enableAssertions = mojo.effectiveIsEnableAssertions();
         JdkAttributes jdkAttributes = mojo.getJdkAttributes();
         Commandline commandline = createCommandline(mojo, jdkAttributes, outputDir);
         File propertiesFile = writeProperties(mojo, outputDir);
         return new TestLauncher(commandline.getWorkingDirectory(), commandline.getEnvironmentVariables(),
-                                propertiesFile, extractJarLauncher(commandline, jdkAttributes));
+                                propertiesFile, extractJarLauncher(commandline, jdkAttributes, enableAssertions));
     }
 
     private static File writeProperties(SurefireMojoWrapper mojo, File outputDir) throws MojoExecutionException {
@@ -87,7 +88,8 @@ public class TestLauncher {
         return propsFile;
     }
 
-    private static JvmLauncher.JarLauncher extractJarLauncher(Commandline commandline, JdkAttributes jdkAttributes)
+    private static JvmLauncher.JarLauncher extractJarLauncher(Commandline commandline, JdkAttributes jdkAttributes,
+                                                              boolean enableAssertions)
             throws MojoExecutionException {
         // Find the JAR specified in the options
         List<String> options = new LinkedList<>(Arrays.asList(commandline.getArguments()));
@@ -97,6 +99,9 @@ public class TestLauncher {
         }
         File jar = new File(options.remove(position + 1));
         options.remove(position);
+        if (enableAssertions) {
+            options.add("-ea");
+        }
         File javaExec = jdkAttributes.getJvmExecutable();
         return new JvmLauncher.JarLauncher(javaExec, jar, options.toArray(new String[0]), false, new String[0]);
     }
