@@ -5,6 +5,8 @@ import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.List;
 
 public final class PluginUtil {
     private PluginUtil() {
@@ -37,6 +39,14 @@ public final class PluginUtil {
             return FileUtil.ensureNew(file);
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to create file: " + file, e);
+        }
+    }
+
+    public static List<String> readLines(File file) throws MojoExecutionException {
+        try {
+            return Files.readAllLines(file.toPath());
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to read lines from : " + file, e);
         }
     }
 }

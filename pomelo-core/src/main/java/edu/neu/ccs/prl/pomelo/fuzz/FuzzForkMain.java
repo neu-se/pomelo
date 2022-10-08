@@ -1,9 +1,12 @@
 package edu.neu.ccs.prl.pomelo.fuzz;
 
-import edu.neu.ccs.prl.pomelo.test.ParameterizedRunner;
-import edu.neu.ccs.prl.pomelo.test.ParameterizedTestType;
-import org.junit.runner.notification.RunListener;
+import edu.neu.ccs.prl.pomelo.param.ParameterizedRunner;
+import edu.neu.ccs.prl.pomelo.param.ParameterizedTestType;
+import edu.neu.ccs.prl.pomelo.param.ParameterizedTestWrapper;
 import org.junit.runner.notification.RunNotifier;
+
+import java.util.Arrays;
+import java.util.LinkedList;
 
 public final class FuzzForkMain {
     private FuzzForkMain() {
@@ -11,30 +14,31 @@ public final class FuzzForkMain {
     }
 
     public static void main(String[] args) throws Throwable {
-        String testClassName = args[0];
-        String testMethodName = args[1];
-        ClassLoader testClassLoader = FuzzForkMain.class.getClassLoader();
-        Class<?> testClass = java.lang.Class.forName(testClassName, true, testClassLoader);
-        // TODO
-        //run(testClass, testMethodName, outputDir);
-    }
-
-    public static void run(Class<?> testClass, String testMethodName, Fuzzer fuzzer, RunListener... listeners)
-            throws Throwable {
-        ParameterizedRunner runner = ParameterizedTestType.getType(testClass)
-                                                          .wrap(testClass, testMethodName)
-                                                          .createParameterizedRunner(fuzzer);
+        LinkedList<String> argumentList = new LinkedList<>(Arrays.asList(args));
+        String testClassName = argumentList.poll();
+        String testMethodName = argumentList.poll();
+        Class<?> testClass = Class.forName(testClassName, true, FuzzForkMain.class.getClassLoader());
+        ParameterizedTestWrapper wrapper = ParameterizedTestType.findAndWrap(testClass, testMethodName);
+        Fuzzer fuzzer = createFuzzer(testClass, testMethodName, argumentList);
+        ParameterizedRunner runner = wrapper.createParameterizedRunner(fuzzer);
         RunNotifier notifier = new RunNotifier();
-        for (RunListener listener : listeners) {
-            notifier.addListener(listener);
-        }
-        // TODO connect failure listener to fuzzer
-        notifier.addListener(new FailureListener());
+        notifier.addListener(fuzzer.getListener());
         try {
             fuzzer.setUp();
             runner.run(notifier);
         } finally {
             fuzzer.tearDown();
+        }
+    }
+
+    private static Fuzzer createFuzzer(Class<?> testClass, String testMethodName, LinkedList<String> argumentList)
+            throws Exception {
+        if (argumentList.isEmpty()) {
+            return new QuickcheckFuzzerAdapter(new UnguidedQuickcheckFuzzer(), testClass, testMethodName);
+        } else {
+            Class<?> builderClass = Class.forName(argumentList.poll(), true, FuzzForkMain.class.getClassLoader());
+            FuzzerBuilder builder = (FuzzerBuilder) builderClass.newInstance();
+            return builder.build(testClass, testMethodName, argumentList.toArray(new String[0]));
         }
     }
 }

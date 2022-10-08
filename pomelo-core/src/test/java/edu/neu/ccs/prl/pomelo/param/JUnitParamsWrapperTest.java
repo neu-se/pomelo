@@ -1,4 +1,4 @@
-package edu.neu.ccs.prl.pomelo.test;
+package edu.neu.ccs.prl.pomelo.param;
 
 import edu.neu.ccs.prl.pomelo.examples.JUnitParamsExample;
 import edu.neu.ccs.prl.pomelo.examples.ParameterizedFieldExample;
@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-public class JUnit4ParameterizedWrapperTest {
+public class JUnitParamsWrapperTest {
     @Test
     public void isTypeMatch() {
         Assert.assertTrue(JUnitParamsWrapper.isType(JUnitParamsExample.class));
@@ -42,5 +42,4 @@ public class JUnit4ParameterizedWrapperTest {
         JUnitParamsWrapper test = new JUnitParamsWrapper(JUnitParamsExample.class, "test1");
         Assert.assertArrayEquals(parameterGroups.toArray(), test.getOriginalParameterGroups().toArray());
     }
-
 }

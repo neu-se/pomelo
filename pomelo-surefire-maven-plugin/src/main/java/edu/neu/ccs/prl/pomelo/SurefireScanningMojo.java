@@ -27,7 +27,7 @@ public class SurefireScanningMojo extends SurefirePlugin {
     /**
      * Directory to which output files should be written.
      */
-    @Parameter(defaultValue = "${project.build.directory}/pomelo", readonly = true, required = true)
+    @Parameter(defaultValue = "${project.build.directory}/pomelo/scan", readonly = true, required = true)
     private File outputDir;
 
     @Override

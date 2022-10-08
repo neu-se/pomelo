@@ -6,37 +6,23 @@ import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
 import com.pholser.junit.quickcheck.internal.generator.GeneratorRepository;
 import com.pholser.junit.quickcheck.internal.generator.ServiceLoaderGeneratorSource;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
-import edu.neu.ccs.prl.pomelo.test.JUnitTestUtil;
-import edu.neu.ccs.prl.pomelo.test.ParameterizedTestType;
-import org.junit.runners.Parameterized;
-import org.junit.runners.model.FrameworkField;
-import org.junit.runners.model.TestClass;
 
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ArgumentsGenerator {
-    private static final long SEED = 41;
+    private static final GeneratorRepository BASE_REPOSITORY =
+            new GeneratorRepository(new SourceOfRandomness(new Random()))
+                    .register(new ServiceLoaderGeneratorSource());
+    private static final long DEFAULT_SEED = 41;
+    private final GeneratorRepository repository = createRepository();
     private final List<Generator<?>> generators;
 
-    public ArgumentsGenerator(List<Field> fields, long seed) {
-        this(fields.stream().map(f -> ParameterTypeContext.forField(f).annotate(f)), seed);
-    }
-
-    public ArgumentsGenerator(Executable executable, long seed) {
-        this(Arrays.stream(executable.getParameters()).map(p -> ParameterTypeContext.forParameter(p).annotate(p)),
-             seed);
-    }
-
-    private ArgumentsGenerator(Stream<ParameterTypeContext> contexts, long seed) {
-        SourceOfRandomness randomness = new SourceOfRandomness(new Random(seed));
-        GeneratorRepository repository =
-                new GeneratorRepository(randomness).register(new ServiceLoaderGeneratorSource());
+    public ArgumentsGenerator(List<ParameterTypeContext> contexts) {
         this.generators = Collections.unmodifiableList(
-                contexts.map(x -> createGenerator(repository, x)).collect(Collectors.toList()));
+                contexts.stream().map(x -> createGenerator(repository, x)).collect(Collectors.toList()));
     }
 
     public List<Generator<?>> getGenerators() {
@@ -44,7 +30,14 @@ public class ArgumentsGenerator {
     }
 
     public Object[] generate(SourceOfRandomness source, GenerationStatus status) {
+        // Set repository.withRandom(source);
+        // Regenerate generators
         return generators.stream().map(g -> g.generate(source, status)).toArray();
+    }
+
+    private static GeneratorRepository createRepository() {
+        return (GeneratorRepository)
+                BASE_REPOSITORY.withRandom(new SourceOfRandomness(new Random(DEFAULT_SEED)));
     }
 
     private static Generator<?> createGenerator(GeneratorRepository repository, ParameterTypeContext context) {
@@ -57,24 +50,24 @@ public class ArgumentsGenerator {
         return generator;
     }
 
-    public static ArgumentsGenerator create(Class<?> clazz, String methodName) {
-        TestClass testClass = new TestClass(clazz);
-        switch (ParameterizedTestType.getType(testClass.getJavaClass())) {
-            case JUNIT4_PARAMETERIZED:
-                List<FrameworkField> fields = testClass.getAnnotatedFields(Parameterized.Parameter.class);
-                return fields.isEmpty() ? new ArgumentsGenerator(testClass.getOnlyConstructor(), SEED) :
-                        new ArgumentsGenerator(getInjectableFields(testClass), SEED);
-            case JUNIT_PARAMS:
-                return new ArgumentsGenerator(JUnitTestUtil.findFrameworkMethod(testClass, methodName).getMethod(),
-                                              SEED);
-            default:
-                throw new AssertionError();
-        }
+    public static List<ParameterTypeContext> getParameterTypeContexts(Collection<Field> fields) {
+        return fields.stream()
+                     .map(f -> ParameterTypeContext.forField(f).annotate(f))
+                     .collect(Collectors.toList());
     }
 
-    private static List<Field> getInjectableFields(TestClass clazz) {
-        return clazz.getAnnotatedFields(Parameterized.Parameter.class).stream().map(FrameworkField::getField)
-                    .sorted(Comparator.comparing(f -> f.getAnnotation(Parameterized.Parameter.class).value()))
-                    .collect(Collectors.toList());
+    public static List<ParameterTypeContext> getParameterTypeContexts(Executable executable) {
+        return Arrays.stream(executable.getParameters())
+                     .map(p -> ParameterTypeContext.forParameter(p).annotate(p))
+                     .collect(Collectors.toList());
+    }
+
+    public static boolean generatorAvailable(ParameterTypeContext context) {
+        try {
+            createGenerator(BASE_REPOSITORY, context);
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
     }
 }

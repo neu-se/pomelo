@@ -1,10 +1,7 @@
 package edu.neu.ccs.prl.pomelo;
 
 import edu.neu.ccs.prl.meringue.ProcessUtil;
-import edu.neu.ccs.prl.pomelo.scan.PomeloJUnitListener;
-import edu.neu.ccs.prl.pomelo.scan.ReportEntry;
-import edu.neu.ccs.prl.pomelo.scan.TestRecord;
-import edu.neu.ccs.prl.pomelo.scan.TestResult;
+import edu.neu.ccs.prl.pomelo.scan.*;
 import edu.neu.ccs.prl.pomelo.util.AppendingWriter;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -46,57 +43,53 @@ public class TestScanner {
     }
 
     private List<TestRecord> performInitialScan(File tempDir) throws MojoExecutionException, MojoFailureException {
-        File initialReport = PluginUtil.ensureNew(new File(tempDir, "temp-scan.txt"));
+        File report = PluginUtil.ensureNew(new File(tempDir, "report.txt"));
         wrapper.getProperties().put("listener", PomeloJUnitListener.class.getName());
         Properties systemProperties = wrapper.getSystemProperties();
-        systemProperties.put("pomelo.scan.report", initialReport.getAbsolutePath());
+        systemProperties.put("pomelo.scan.report", report.getAbsolutePath());
         wrapper.execute();
-        return readRecords(initialReport);
+        return readRecords(report);
     }
 
     private List<ReportEntry> processRecords(File tempDir, List<TestRecord> records) throws MojoExecutionException {
         TestLauncher launcher = TestLauncher.create(wrapper, tempDir);
-        List<ReportEntry> result = new ArrayList<>(records.size());
+        List<ReportEntry> entries = new ArrayList<>(records.size());
         for (TestRecord record : records) {
-            result.add(new ReportEntry(wrapper.getProject().getId(), pluginName, execution.getExecutionId(),
-                                       record.getTestClassName(), record.getTestMethodName(),
-                                       record.getRunnerClassName(), record.isUnambiguous(),
-                                       record.passed() ? TestResult.PASSED : TestResult.FAILED,
-                                       record.passed() && record.isUnambiguous() ?
-                                               performIsolatedRun(launcher, record, tempDir) : TestResult.NONE));
+            ReportEntry entry = new ReportEntry(wrapper.getProject().getId(), pluginName, execution.getExecutionId(),
+                                                record.getTestClassName(), record.getTestMethodName(),
+                                                record.getRunnerClassName(), record.isUnambiguous(),
+                                                record.passed() ? TestResult.PASSED : TestResult.FAILED,
+                                                TestResult.NONE, GeneratorsStatus.UNKNOWN);
+            if (record.passed() && record.isUnambiguous()) {
+                entry = performIsolatedRun(launcher, record, tempDir, entry);
+            }
+            entries.add(entry);
         }
-        return result;
+        return entries;
     }
 
-    private List<TestRecord> readRecords(File file) throws MojoExecutionException {
+    private ReportEntry performIsolatedRun(TestLauncher launcher, TestRecord record, File tempDir, ReportEntry entry)
+            throws MojoExecutionException {
+        File report = PluginUtil.ensureNew(new File(tempDir, "report.txt"));
+        Process process = launcher.launchScanFork(record.getTestClassName(), record.getTestMethodName(), report);
+        try {
+            if (ProcessUtil.waitFor(process) != 0) {
+                return entry.withIsolatedResult(TestResult.ERROR);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return entry.withIsolatedResult(TestResult.ERROR);
+        }
+        List<String> lines = PluginUtil.readLines(report);
+        return entry.withGeneratorsStatus(GeneratorsStatus.valueOf(lines.get(0).trim()))
+                    .withIsolatedResult(TestResult.valueOf(lines.get(1).trim()));
+    }
+
+    private static List<TestRecord> readRecords(File file) throws MojoExecutionException {
         try {
             return TestRecord.readCsvRows(file);
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to read scan records", e);
-        }
-    }
-
-    private TestResult performIsolatedRun(TestLauncher launcher, TestRecord record, File tempDir)
-            throws MojoExecutionException {
-        File report = PluginUtil.ensureNew(new File(tempDir, "temp-scan.txt"));
-        Process process = launcher.launchScan(record, report);
-        try {
-            if (ProcessUtil.waitFor(process) != 0) {
-                return TestResult.ERROR;
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return TestResult.ERROR;
-        }
-        List<TestRecord> records = readRecords(report);
-        if (records.size() == 1) {
-            if (records.get(0).equals(record)) {
-                return TestResult.PASSED;
-            } else {
-                return TestResult.FAILED;
-            }
-        } else {
-            return TestResult.ERROR;
         }
     }
 }

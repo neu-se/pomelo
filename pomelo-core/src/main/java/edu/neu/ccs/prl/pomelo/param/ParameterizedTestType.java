@@ -1,4 +1,4 @@
-package edu.neu.ccs.prl.pomelo.test;
+package edu.neu.ccs.prl.pomelo.param;
 
 public enum ParameterizedTestType {
     JUNIT4_PARAMETERIZED() {
@@ -36,10 +36,10 @@ public enum ParameterizedTestType {
         return false;
     }
 
-    public static ParameterizedTestType getType(Class<?> clazz) {
+    public static ParameterizedTestWrapper findAndWrap(Class<?> clazz, String methodName) {
         for (ParameterizedTestType type : values()) {
             if (type.matches(clazz)) {
-                return type;
+                return type.wrap(clazz, methodName);
             }
         }
         throw new IllegalArgumentException(clazz + " is not a parameterized test");

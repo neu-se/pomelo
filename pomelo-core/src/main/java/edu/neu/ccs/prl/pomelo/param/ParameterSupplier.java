@@ -1,4 +1,4 @@
-package edu.neu.ccs.prl.pomelo.test;
+package edu.neu.ccs.prl.pomelo.param;
 
 public interface ParameterSupplier {
     boolean hasNext();

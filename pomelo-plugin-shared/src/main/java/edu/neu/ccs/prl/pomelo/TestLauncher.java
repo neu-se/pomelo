@@ -3,7 +3,6 @@ package edu.neu.ccs.prl.pomelo;
 import edu.neu.ccs.prl.meringue.JvmLauncher;
 import edu.neu.ccs.prl.meringue.ProcessUtil;
 import edu.neu.ccs.prl.pomelo.scan.ScanForkMain;
-import edu.neu.ccs.prl.pomelo.scan.TestRecord;
 import edu.neu.ccs.prl.pomelo.util.SystemPropertyUtil;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.surefire.JdkAttributes;
@@ -40,10 +39,14 @@ public class TestLauncher {
         this.launcher = launcher;
     }
 
-    public Process launchScan(TestRecord record, File reportFile) throws MojoExecutionException {
-        String[] arguments = {record.getTestClassName(), record.getTestMethodName(),
-                reportFile.getAbsolutePath(),
-                propertiesFile.getAbsolutePath()};
+    public Process launchScanFork(String testClass, String testMethod, File report)
+            throws MojoExecutionException {
+        String[] arguments = {
+                testClass,
+                testMethod,
+                propertiesFile.getAbsolutePath(),
+                report.getAbsolutePath(),
+        };
         JvmLauncher mainLauncher =
                 new JvmLauncher.JavaMainLauncher(launcher.getJavaExec(), ScanForkMain.class.getName(),
                                                  launcher.getOptions(), true, arguments)

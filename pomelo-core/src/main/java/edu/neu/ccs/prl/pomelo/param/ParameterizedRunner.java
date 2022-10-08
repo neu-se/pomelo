@@ -1,4 +1,4 @@
-package edu.neu.ccs.prl.pomelo.test;
+package edu.neu.ccs.prl.pomelo.param;
 
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;

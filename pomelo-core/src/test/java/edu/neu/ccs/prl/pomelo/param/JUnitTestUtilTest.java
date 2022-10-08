@@ -1,4 +1,4 @@
-package edu.neu.ccs.prl.pomelo.test;
+package edu.neu.ccs.prl.pomelo.param;
 
 import edu.neu.ccs.prl.pomelo.examples.ParameterizedConstructorExample;
 import org.junit.Assert;

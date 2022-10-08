@@ -1,5 +1,7 @@
-package edu.neu.ccs.prl.pomelo.test;
+package edu.neu.ccs.prl.pomelo.param;
 
+import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
+import edu.neu.ccs.prl.pomelo.fuzz.ArgumentsGenerator;
 import junitparams.JUnitParamsRunner;
 import junitparams.internal.TestMethod;
 import org.junit.runner.Description;
@@ -38,13 +40,18 @@ public final class JUnitParamsWrapper implements ParameterizedTestWrapper {
         return getOriginalParameterGroups(testClass, testMethodName);
     }
 
+    @Override
+    public List<ParameterTypeContext> getParameterTypeContexts() {
+        return ArgumentsGenerator.getParameterTypeContexts(
+                JUnitTestUtil.findFrameworkMethod(new TestClass(testClass), testMethodName).getMethod());
+    }
+
     public static boolean isType(Class<?> clazz) {
         return clazz.isAnnotationPresent(RunWith.class) &&
                 clazz.getAnnotation(RunWith.class).value().equals(JUnitParamsRunner.class);
     }
 
-    private static List<Object[]> getOriginalParameterGroups(Class<?> clazz, String testMethodName)
-            throws Throwable {
+    private static List<Object[]> getOriginalParameterGroups(Class<?> clazz, String testMethodName) throws Throwable {
         TestClass testClass = new TestClass(clazz);
         FrameworkMethod testMethod = JUnitTestUtil.findFrameworkMethod(testClass, testMethodName);
         Object[] parametersSets = new TestMethod(testMethod, testClass).parametersSets();

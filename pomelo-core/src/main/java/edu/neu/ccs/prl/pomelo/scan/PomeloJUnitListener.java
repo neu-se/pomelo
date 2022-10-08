@@ -1,6 +1,6 @@
 package edu.neu.ccs.prl.pomelo.scan;
 
-import edu.neu.ccs.prl.pomelo.test.ParameterizedTestType;
+import edu.neu.ccs.prl.pomelo.param.ParameterizedTestType;
 import edu.neu.ccs.prl.pomelo.util.AppendingWriter;
 import org.junit.Test;
 import org.junit.runner.Description;
@@ -102,7 +102,7 @@ public class PomeloJUnitListener extends RunListener {
                      .filter(m -> m.getName().equals(name)).collect(Collectors.toList());
     }
 
-    private static String getMethodName(Description description) {
+    static String getMethodName(Description description) {
         String methodName = description.getMethodName();
         int i;
         if ((i = methodName.indexOf('(')) != -1) {

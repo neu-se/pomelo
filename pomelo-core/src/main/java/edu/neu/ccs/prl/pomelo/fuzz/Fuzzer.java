@@ -1,11 +1,13 @@
 package edu.neu.ccs.prl.pomelo.fuzz;
 
-import edu.neu.ccs.prl.pomelo.test.ParameterSupplier;
+import edu.neu.ccs.prl.pomelo.param.ParameterSupplier;
+import org.junit.runner.notification.RunListener;
+import org.junit.runners.model.MultipleFailureException;
 
 public interface Fuzzer extends ParameterSupplier {
     void setUp();
 
-    void tearDown();
+    void tearDown() throws MultipleFailureException;
 
-    void handleResult(Object[] arguments, Throwable failure);
+    RunListener getListener();
 }
