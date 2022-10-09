@@ -23,7 +23,7 @@ public class PomeloJUnitListener extends RunListener {
 
     @SuppressWarnings("unused")
     public PomeloJUnitListener() {
-        this(new File(System.getProperty("pomelo.scan.report")));
+        this(new File(System.getProperty("pomelo.listener.report")));
     }
 
     public PomeloJUnitListener(File file) {

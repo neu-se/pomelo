@@ -46,7 +46,7 @@ public class TestScanner {
         File report = PluginUtil.ensureNew(new File(tempDir, "report.txt"));
         wrapper.getProperties().put("listener", PomeloJUnitListener.class.getName());
         Properties systemProperties = wrapper.getSystemProperties();
-        systemProperties.put("pomelo.scan.report", report.getAbsolutePath());
+        systemProperties.put("pomelo.listener.report", report.getAbsolutePath());
         wrapper.execute();
         return readRecords(report);
     }
