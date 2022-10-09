@@ -6,7 +6,7 @@ import org.apache.maven.execution.MavenSession;
 public enum PomeloPhase {
     SCAN() {
         public void configure(MavenSession session) throws MavenExecutionException {
-            new ScanConfigurer(session).configure(session);
+            new ScanConfigurer().configure(session);
         }
     }, FUZZ() {
         public void configure(MavenSession session) throws MavenExecutionException {

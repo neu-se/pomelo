@@ -23,7 +23,7 @@ public class FailsafeScanningMojo extends IntegrationTestMojo {
     /**
      * File to which pomelo report entries are written.
      */
-    @Parameter(required = true)
+    @Parameter(property = "pomelo.scan.report", required = true)
     private File scanReport;
     /**
      * Directory to which output files should be written.

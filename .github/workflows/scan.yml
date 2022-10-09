@@ -20,16 +20,6 @@ jobs:
         with:
           project: pomelo
           skip_tests: true
-      - name: Download Maven and install Pomelo
-        env:
-          MAVEN_VERSION: 3.8.6
-          POMELO_EXTENSION_JAR: pomelo/pomelo-maven-lifecycle/target/pomelo-maven-lifecycle-1.0.0-SNAPSHOT.jar
-        run: |
-          wget "https://dlcdn.apache.org/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz"
-          mkdir maven
-          tar -xf apache-maven-$MAVEN_VERSION-bin.tar.gz -C maven --strip-components 1
-          mv $POMELO_EXTENSION_JAR maven/lib/ext
-        shell: bash
       - name: Checkout project
         uses: actions/checkout@v3
         with:
@@ -38,14 +28,14 @@ jobs:
       - name: Scan project
         env:
           JAVA_HOME: /usr/lib/jvm/jdk1.8.0_301/
-          INST_HOME: /usr/lib/jvm/jdk1.8.0_301/jre/
           REPORT: pomelo/pomelo-scan.txt
+          POMELO_EXTENSION_JAR: pomelo/pomelo-maven-lifecycle/target/pomelo-maven-lifecycle-1.0.0-SNAPSHOT.jar
           MAVEN_OPTS: >
             -Dhttps.protocols=TLSv1.2 -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true
             -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN
             -DinstallAtEnd=true
           MAVEN_CLI_OPTS: --batch-mode --errors --fail-never --show-version
         run: |
-          maven/bin/mvn -f project -Dpomelo.phase=scan -Dpomelo.scan.report=$REPORT $MAVEN_CLI_OPTS install
+          mvn -f project -Dmaven.ext.class.path=$POMELO_EXTENSION_JAR -Dpomelo.phase=scan -Dpomelo.scan.report=$REPORT $MAVEN_CLI_OPTS install
           cat $REPORT
         shell: bash

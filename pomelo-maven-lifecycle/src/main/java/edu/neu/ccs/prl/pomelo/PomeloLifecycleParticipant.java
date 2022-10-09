@@ -11,7 +11,6 @@ import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -58,9 +57,7 @@ public class PomeloLifecycleParticipant extends AbstractMavenLifecycleParticipan
     }
 
     static java.util.stream.Stream<Plugin> getAllTestPlugins(MavenProject project) {
-        return project.getBuildPlugins()
-                      .stream()
-                      .filter(TestPluginType::isTestPlugin);
+        return project.getBuildPlugins().stream().filter(TestPluginType::isTestPlugin);
     }
 
     static java.util.stream.Stream<Plugin> getAllTestPlugins(MavenSession session) {
@@ -69,17 +66,6 @@ public class PomeloLifecycleParticipant extends AbstractMavenLifecycleParticipan
 
     static void reconfigureTestPluginExecutions(MavenSession session, Consumer<PluginExecution> consumer) {
         getAllTestPlugins(session).flatMap(p -> p.getExecutions().stream()).forEach(consumer);
-    }
-
-    static void addConfigurationValue(PluginExecution execution, String name, String value) {
-        Xpp3Dom configuration = (Xpp3Dom) execution.getConfiguration();
-        if (configuration == null) {
-            configuration = new Xpp3Dom("configuration");
-            execution.setConfiguration(configuration);
-        }
-        Xpp3Dom node = new Xpp3Dom(name);
-        node.setValue(value);
-        configuration.addChild(node);
     }
 
     static void addCoreDependency(MavenProject project) {
