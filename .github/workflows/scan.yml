@@ -9,6 +9,7 @@ on:
 jobs:
   scan:
     runs-on: self-hosted
+    timeout-minutes: 2880
     steps:
       - name: Checkout Pomelo
         uses: actions/checkout@v3
@@ -38,7 +39,7 @@ jobs:
         env:
           JAVA_HOME: /usr/lib/jvm/jdk1.8.0_301/
           INST_HOME: /usr/lib/jvm/jdk1.8.0_301/jre/
-          REPORT: report.txt
+          REPORT: pomelo/pomelo-scan.txt
           MAVEN_OPTS: >
             -Dhttps.protocols=TLSv1.2 -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true
             -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN
@@ -46,5 +47,5 @@ jobs:
           MAVEN_CLI_OPTS: --batch-mode --errors --fail-never --show-version
         run: |
           maven/bin/mvn -f project -Dpomelo.phase=scan -Dpomelo.scan.report=$REPORT $MAVEN_CLI_OPTS install
-          cat report.txt
+          cat $REPORT
         shell: bash
