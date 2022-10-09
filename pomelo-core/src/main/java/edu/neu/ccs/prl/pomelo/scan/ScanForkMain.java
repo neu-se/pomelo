@@ -50,7 +50,7 @@ public final class ScanForkMain {
             IsolatedScanRunListener listener = new IsolatedScanRunListener(testClass, testMethodName);
             notifier.addListener(listener);
             runner.run(notifier);
-            if (listener.error) {
+            if (listener.nonMatchFinished || !listener.matchFinished) {
                 return TestResult.ERROR;
             } else if (listener.failed) {
                 return TestResult.FAILED;
@@ -66,8 +66,9 @@ public final class ScanForkMain {
     private static class IsolatedScanRunListener extends RunListener {
         private final Class<?> testClass;
         private final String testMethodName;
-        private boolean error;
-        private boolean failed;
+        private boolean nonMatchFinished = false;
+        private boolean failed = false;
+        private boolean matchFinished = false;
 
         public IsolatedScanRunListener(Class<?> testClass, String testMethodName) {
             this.testClass = testClass;
@@ -76,13 +77,22 @@ public final class ScanForkMain {
 
         @Override
         public void testFinished(Description d) {
-            error |= d.getMethodName() == null || !testClass.equals(d.getTestClass()) ||
-                    !testMethodName.equals(TestMethod.getMethodName(d.getMethodName()));
+            if (matchesTarget(d)) {
+                matchFinished = true;
+            } else if (d.isTest() && d.getTestClass() != null && d.getMethodName() != null) {
+                nonMatchFinished = true;
+            }
         }
 
         @Override
         public void testFailure(Failure failure) {
-            failed = true;
+            failed |= matchesTarget(failure.getDescription());
+        }
+
+        private boolean matchesTarget(Description d) {
+            return d.getMethodName() != null && d.getTestClass() != null
+                    && testClass.equals(d.getTestClass())
+                    && testMethodName.equals(TestMethod.getMethodName(d.getMethodName()));
         }
     }
 }
