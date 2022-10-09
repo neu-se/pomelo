@@ -30,6 +30,13 @@ public class PomeloLifecycleParticipant extends AbstractMavenLifecycleParticipan
         }
     }
 
+    static void ensureProperty(MavenSession session, String key) throws MavenExecutionException {
+        String value = session.getUserProperties().getProperty(key);
+        if (value == null) {
+            throw new MavenExecutionException("Invalid missing property: " + key, session.getRequest().getPom());
+        }
+    }
+
     static String getRequiredProperty(MavenSession session, String key) throws MavenExecutionException {
         String value = session.getUserProperties().getProperty(key);
         if (value == null) {

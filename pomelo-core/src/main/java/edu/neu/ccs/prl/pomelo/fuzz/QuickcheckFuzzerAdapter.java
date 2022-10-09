@@ -3,6 +3,7 @@ package edu.neu.ccs.prl.pomelo.fuzz;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 import edu.neu.ccs.prl.pomelo.param.ParameterSupplier;
 import edu.neu.ccs.prl.pomelo.param.ParameterizedTestType;
+import edu.neu.ccs.prl.pomelo.scan.TestMethod;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
@@ -19,7 +20,7 @@ public class QuickcheckFuzzerAdapter implements ParameterSupplier, Fuzzer {
         }
         this.fuzzer = fuzzer;
         this.generator = new ArgumentsGenerator(
-                ParameterizedTestType.findAndWrap(testClass, testMethodName).getParameterTypeContexts());
+                ParameterizedTestType.wrap(new TestMethod(testClass, testMethodName)).getParameterTypeContexts());
         this.listener = new FailureListener();
     }
 

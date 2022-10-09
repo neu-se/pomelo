@@ -1,5 +1,7 @@
 package edu.neu.ccs.prl.pomelo.param;
 
+import edu.neu.ccs.prl.pomelo.scan.TestMethod;
+
 public enum ParameterizedTestType {
     JUNIT4_PARAMETERIZED() {
         @Override
@@ -27,21 +29,21 @@ public enum ParameterizedTestType {
 
     public abstract ParameterizedTestWrapper wrap(Class<?> clazz, String methodName);
 
-    public static boolean isParameterizedTest(Class<?> clazz) {
+    public static boolean isParameterized(TestMethod method) {
         for (ParameterizedTestType type : values()) {
-            if (type.matches(clazz)) {
+            if (type.matches(method.getTestClass())) {
                 return true;
             }
         }
         return false;
     }
 
-    public static ParameterizedTestWrapper findAndWrap(Class<?> clazz, String methodName) {
+    public static ParameterizedTestWrapper wrap(TestMethod method) {
         for (ParameterizedTestType type : values()) {
-            if (type.matches(clazz)) {
-                return type.wrap(clazz, methodName);
+            if (type.matches(method.getTestClass())) {
+                return type.wrap(method.getTestClass(), method.getTestMethodName());
             }
         }
-        throw new IllegalArgumentException(clazz + " is not a parameterized test");
+        throw new IllegalArgumentException(method + " is not a parameterized test");
     }
 }

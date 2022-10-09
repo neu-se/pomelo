@@ -3,6 +3,7 @@ package edu.neu.ccs.prl.pomelo.fuzz;
 import com.pholser.junit.quickcheck.generator.Generator;
 import edu.neu.ccs.prl.pomelo.examples.*;
 import edu.neu.ccs.prl.pomelo.param.ParameterizedTestType;
+import edu.neu.ccs.prl.pomelo.scan.TestMethod;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -14,7 +15,7 @@ public class ArgumentsGeneratorTest {
     @Test
     public void generatorsCorrectConstructorInjection() {
         List<Generator<?>> generators = new ArgumentsGenerator(
-                ParameterizedTestType.findAndWrap(ParameterizedConstructorExample.class, "test1")
+                ParameterizedTestType.wrap(new TestMethod(ParameterizedConstructorExample.class, "test1"))
                                      .getParameterTypeContexts()).getGenerators();
         Assert.assertEquals(2, generators.size());
         Assert.assertTrue(generators.get(0).types().contains(int.class));
@@ -24,7 +25,7 @@ public class ArgumentsGeneratorTest {
     @Test
     public void generatorsCorrectFieldInjection() {
         List<Generator<?>> generators = new ArgumentsGenerator(
-                ParameterizedTestType.findAndWrap(ParameterizedFieldExample.class, "test1")
+                ParameterizedTestType.wrap(new TestMethod(ParameterizedFieldExample.class, "test1"))
                                      .getParameterTypeContexts()).getGenerators();
         Assert.assertEquals(2, generators.size());
         Assert.assertTrue(generators.get(0).types().contains(String.class));
@@ -34,7 +35,7 @@ public class ArgumentsGeneratorTest {
     @Test
     public void generatorsCorrectFieldInjectionFrom() {
         List<Generator<?>> generators = new ArgumentsGenerator(
-                ParameterizedTestType.findAndWrap(ParameterizedFieldFromExample.class, "test1")
+                ParameterizedTestType.wrap(new TestMethod(ParameterizedFieldFromExample.class, "test1"))
                                      .getParameterTypeContexts()).getGenerators();
         Assert.assertEquals(Collections.singletonList(MyStringGenerator.class),
                             generators.stream().map(Object::getClass).collect(Collectors.toList()));
@@ -43,7 +44,7 @@ public class ArgumentsGeneratorTest {
     @Test
     public void generatorsCorrectMethodInjection() {
         List<Generator<?>> generators = new ArgumentsGenerator(
-                ParameterizedTestType.findAndWrap(JUnitParamsExample.class, "test1")
+                ParameterizedTestType.wrap(new TestMethod(JUnitParamsExample.class, "test1"))
                                      .getParameterTypeContexts()).getGenerators();
         Assert.assertEquals(2, generators.size());
         Assert.assertTrue(generators.get(0).types().contains(int.class));
@@ -53,7 +54,7 @@ public class ArgumentsGeneratorTest {
     @Test
     public void generatorsCorrectMethodInjectionFrom() {
         List<Generator<?>> generators = new ArgumentsGenerator(
-                ParameterizedTestType.findAndWrap(JUnitParamsExample.class, "testWithGenerator")
+                ParameterizedTestType.wrap(new TestMethod(JUnitParamsExample.class, "testWithGenerator"))
                                      .getParameterTypeContexts()).getGenerators();
         Assert.assertEquals(Collections.singletonList(MyStringGenerator.class),
                             generators.stream().map(Object::getClass).collect(Collectors.toList()));

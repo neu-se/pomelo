@@ -21,7 +21,7 @@ public final class ScanForkMain {
     public static void main(String[] args) throws Throwable {
         Class<?> testClass = Class.forName(args[0], true, ScanForkMain.class.getClassLoader());
         String testMethodName = args[1];
-        ParameterizedTestWrapper wrapper = ParameterizedTestType.findAndWrap(testClass, testMethodName);
+        ParameterizedTestWrapper wrapper = ParameterizedTestType.wrap(new TestMethod(testClass, testMethodName));
         SystemPropertyUtil.load(new File(args[2]));
         File report = new File(args[3]);
         GeneratorsStatus status = checkGeneratorStatus(wrapper);
@@ -77,7 +77,7 @@ public final class ScanForkMain {
         @Override
         public void testFinished(Description d) {
             error |= d.getMethodName() == null || !testClass.equals(d.getTestClass()) ||
-                    !testMethodName.equals(PomeloJUnitListener.getMethodName(d));
+                    !testMethodName.equals(TestMethod.getMethodName(d.getMethodName()));
         }
 
         @Override

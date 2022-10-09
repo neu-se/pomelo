@@ -44,7 +44,7 @@ public class TestScanner {
 
     private List<TestRecord> performInitialScan(File tempDir) throws MojoExecutionException, MojoFailureException {
         File report = PluginUtil.ensureNew(new File(tempDir, "report.txt"));
-        wrapper.getProperties().put("listener", PomeloJUnitListener.class.getName());
+        wrapper.getProperties().put("listener", PomeloRunListener.class.getName());
         Properties systemProperties = wrapper.getSystemProperties();
         systemProperties.put("pomelo.listener.report", report.getAbsolutePath());
         wrapper.execute();

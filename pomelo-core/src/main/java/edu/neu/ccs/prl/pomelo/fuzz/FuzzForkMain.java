@@ -3,6 +3,7 @@ package edu.neu.ccs.prl.pomelo.fuzz;
 import edu.neu.ccs.prl.pomelo.param.ParameterizedRunner;
 import edu.neu.ccs.prl.pomelo.param.ParameterizedTestType;
 import edu.neu.ccs.prl.pomelo.param.ParameterizedTestWrapper;
+import edu.neu.ccs.prl.pomelo.scan.TestMethod;
 import org.junit.runner.notification.RunNotifier;
 
 import java.util.Arrays;
@@ -18,7 +19,7 @@ public final class FuzzForkMain {
         String testClassName = argumentList.poll();
         String testMethodName = argumentList.poll();
         Class<?> testClass = Class.forName(testClassName, true, FuzzForkMain.class.getClassLoader());
-        ParameterizedTestWrapper wrapper = ParameterizedTestType.findAndWrap(testClass, testMethodName);
+        ParameterizedTestWrapper wrapper = ParameterizedTestType.wrap(new TestMethod(testClass, testMethodName));
         Fuzzer fuzzer = createFuzzer(testClass, testMethodName, argumentList);
         ParameterizedRunner runner = wrapper.createParameterizedRunner(fuzzer);
         RunNotifier notifier = new RunNotifier();

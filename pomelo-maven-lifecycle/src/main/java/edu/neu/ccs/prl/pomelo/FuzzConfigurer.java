@@ -18,8 +18,8 @@ public final class FuzzConfigurer {
         projectId = getRequiredProperty(session, "pomelo.project");
         executionId = getRequiredProperty(session, "pomelo.execution");
         pluginType = TestPluginType.valueOf(session, getRequiredProperty(session, "pomelo.plugin"));
-        getRequiredProperty(session, "pomelo.testClass");
-        getRequiredProperty(session, "pomelo.testMethod");
+        ensureProperty(session, "pomelo.testClass");
+        ensureProperty(session, "pomelo.testMethod");
     }
 
     public void configure(MavenSession session) {
