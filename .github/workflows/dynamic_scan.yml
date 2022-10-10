@@ -22,7 +22,8 @@ jobs:
       - name: List modules
         id: list-modules
         uses: ./pomelo/.github/actions/list-modules
-        working-directory: ./project
+        with:
+          path: ./project
       - name: Print modules
         run: echo ${{ steps.list-modules.outputs.modules }}
     outputs:
