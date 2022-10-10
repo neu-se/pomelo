@@ -22,7 +22,7 @@ public class SurefireScanningMojo extends SurefirePlugin {
     /**
      * File to which pomelo report entries are written.
      */
-    @Parameter(property = "pomelo.scan.report", required = true)
+    @Parameter(property = "pomelo.scan.report.absolute", required = true)
     private File scanReport;
     /**
      * Directory to which output files should be written.

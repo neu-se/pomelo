@@ -29,7 +29,7 @@ public final class ScanConfigurer {
         try {
             FileUtil.ensureNew(report);
             Files.write(report.toPath(), Collections.singletonList(ReportEntry.getCsvHeader()));
-            session.getUserProperties().put("pomelo.scan.report", report.getAbsolutePath());
+            session.getUserProperties().put("pomelo.scan.report.absolute", report.getAbsolutePath());
         } catch (IOException e) {
             throw new MavenExecutionException("Failed to initialize scan report", e);
         }
