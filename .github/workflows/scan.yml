@@ -76,7 +76,8 @@ jobs:
         env:
           REPORT_DIR: /ci-logs/public/katie/pomelo/scan/${{ github.run_id }}
         run: |
-          head -1 -q $REPORT_DIR/*.csv | head -1 > $REPORT_DIR/report.csv
-          tail -n+2 -q $REPORT_DIR/*.csv >> $REPORT_DIR/report.csv
-          cat $REPORT_DIR/report.csv
+          cd "$REPORT_DIR"
+          head -1 -q *.csv | head -1 > report.csv
+          tail -n+2 -q *.csv >> report.csv
+          cat report.csv
         shell: bash
