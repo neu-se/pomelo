@@ -30,6 +30,10 @@ jobs:
         uses: ./pomelo/.github/actions/list-modules
         with:
           path: ./project
+      - name: Create report directory
+        run: |
+          mkdirs /ci-logs/public/katie/pomelo/scan/${{ github.run_id }}/
+        shell: bash
     outputs:
       modules: ${{ steps.list-modules.outputs.modules }}
   scan-modules:
@@ -46,7 +50,7 @@ jobs:
           path: pomelo
       - name: Scan ${{ github.event.inputs.repository }} ${{ matrix.module }}
         env:
-          REPORT_FILE: /ci-logs/public/katie/pomelo/scan/${{ github.run_id }}/${{ strategy.job-index  }}
+          REPORT_FILE: /ci-logs/public/katie/pomelo/scan/${{ github.run_id }}/${{ strategy.job-index  }}.txt
         uses: ./pomelo/.github/actions/scan
         with:
           path: project
@@ -56,8 +60,8 @@ jobs:
           report: $REPORT_FILE
       - name: Print scan report
         env:
-          REPORT_FILE: /ci-logs/public/katie/pomelo/scan/${{ github.run_id }}/${{ strategy.job-index  }}
-          REPORT_LOCATION: public/katie/pomelo/scan/${{ github.run_id }}/${{ strategy.job-index  }}
+          REPORT_FILE: /ci-logs/public/katie/pomelo/scan/${{ github.run_id }}/${{ strategy.job-index  }}.txt
+          REPORT_LOCATION: public/katie/pomelo/scan/${{ github.run_id }}/${{ strategy.job-index  }}.txt
         run: |
           cat $REPORT_FILE
           echo "Report saved to: https://ci.in.ripley.cloud/logs/$REPORT_LOCATION"
