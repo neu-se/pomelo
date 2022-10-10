@@ -44,6 +44,7 @@ runs:
           -Dpomelo.phase=scan 
           -Dpomelo.scan.report=pomelo-scan.txt
           -Dsurefire.timeout=${{ inputs.timeout }}
+          -Dfailsafe.timeout=${{ inputs.timeout }}
       run: |
         mvn -f ${{ inputs.path }} -pl ${{ inputs.module }} -am install -DskipTests -q
         mvn -f ${{ inputs.path }} -pl ${{ inputs.module }} $POMELO_OPTS -B -fn integration-test
