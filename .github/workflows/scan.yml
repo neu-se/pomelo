@@ -7,11 +7,11 @@ on:
         required: true
         type: string
       timeout:
-        description: "Amount of time after which forked test processes should be killed or 0 if test processes should 
+        description: "Amount of time in seconds after which forked test processes should be killed or 0 if test processes should 
         never be timed out."
         required: false
         type: string
-        default: "0"
+      default: "1800"
 jobs:
   generate-matrix:
     runs-on: self-hosted

@@ -3,8 +3,7 @@ description: 'Scan a module in a Maven Project.'
 inputs:
   path:
     description: 'Path to the Maven project.'
-    required: false
-    default: '.'
+    required: true
   repository:
     description: 'GitHub repository for the maven project.'
     required: true
@@ -15,7 +14,6 @@ inputs:
     description: "Amount of time in seconds after which forked test processes should be killed or 0 if test processes 
     should never be timed out."
     required: true
-    default: "1800"
   report:
     description: "File to which the final report should be written."
     required: true
