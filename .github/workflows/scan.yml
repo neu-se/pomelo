@@ -38,7 +38,7 @@ jobs:
       modules: ${{ steps.list-modules.outputs.modules }}
   scan-modules:
     runs-on: self-hosted
-    timeout-minutes: 10
+    timeout-minutes: 2880
     needs: generate-matrix
     strategy:
       fail-fast: false
