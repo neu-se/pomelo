@@ -11,6 +11,6 @@ jobs:
           skip_tests: false
       - name: Scan examples
         run: |
-          mvn -f pomelo-examples install -Dpomelo.phase=scan -Dpomelo.scan.report=pomelo-scan.txt
-          cat pomelo-scan.txt
+          mvn -f pomelo-examples install -Dpomelo.phase=scan
+          cat pomelo-examples/target/pomelo-scan.txt
         shell: bash
