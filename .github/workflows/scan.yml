@@ -77,7 +77,9 @@ jobs:
           REPORT_DIR: /ci-logs/public/katie/pomelo/scan/${{ github.run_id }}
         run: |
           cd "$REPORT_DIR"
-          head -1 -q *.csv | head -1 > report.csv
+          HEADER="project_id,plugin_name,execution_id,test_class_name,test_method_name,runner_class_name,"
+          HEADER+="unambiguous,original_result,isolated_result,generators_status"
+          echo $HEADER > report.csv
           tail -n+2 -q *.csv >> report.csv
           cat report.csv
         shell: bash
