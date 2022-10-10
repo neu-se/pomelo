@@ -46,7 +46,7 @@ runs:
           -Dsurefire.timeout=${{ inputs.timeout }}
           -Dfailsafe.timeout=${{ inputs.timeout }}
       run: |
-        mvn -f ${{ inputs.path }} install -DskipTests -q
+        mvn -f ${{ inputs.path }} -fn install -DskipTests -q
         mvn -f ${{ inputs.path }} -pl ${{ inputs.module }} $POMELO_OPTS -B -fn integration-test
         mv pomelo-scan.txt ${{ inputs.report }}
       shell: bash
