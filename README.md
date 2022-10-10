@@ -10,9 +10,9 @@ Support for fuzzing parameterized JUnit tests.
 -Dpomelo.phase=fuzz -Dpomelo.project=<J> -Dpomelo.execution=<E> -Dpomelo.plugin=<P> -Dpomelo.testClass=<C> -Dpomelo.testMethod=<M>
 ```
 
-## Adding the Pomelo extension to your build
+## Adding the Pomelo extension to your Maven build
 
-There are four ways you can add the Pomelo extension to your build
+There are four ways you can add the Pomelo extension to your Maven build
 
 1. Install a copy of the pomelo-maven-lifecycle JAR into ${maven.home}/lib/ext
 2. Add pomelo-maven-lifecycle as an extension in your pom:
