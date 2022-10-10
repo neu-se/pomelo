@@ -1,0 +1,18 @@
+name: "List modules"
+description: 'List all the active modules for a Maven project.'
+outputs:
+  modules:
+    description: "List of all active modules"
+    value: ${{ steps.list.outputs.modules }}
+runs:
+  using: "composite"
+  steps:
+    - name: Build project
+      env:
+        JAVA_HOME: /usr/lib/jvm/jdk1.8.0_301/
+      run: |
+        MODULES=$(mvn -Dexec.executable='echo' -Dexec.args='${project.groupId}:${project.artifactId}' exec:exec -q | \
+        jq  --raw-input .  | \
+        jq --slurp -c .)
+        echo "::set-output name=modules::$MODULES"
+      shell: bash

@@ -1,29 +1,40 @@
-name: Create dynamic matrix
+name: Scan Maven project
 on:
   workflow_dispatch:
     inputs:
-      name:
-        description: 'Name'
+      repository:
+        description: 'GitHub repository for the Maven project to be scanned.'
         required: true
-        type: String
+        type: string
 jobs:
   generate-matrix:
     runs-on: self-hosted
     steps:
-      - id: set-matrix
-        run: |
-          echo '::set-output name=identifiers::["a","b","c"]'
-        shell: bash
+      - name: Checkout Pomelo
+        uses: actions/checkout@v3
+        with:
+          path: pomelo
+      - name: Checkout project
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ github.event.inputs.repository }}
+          path: project
+      - name: List modules
+        id: list-modules
+        uses: ./pomelo/.github/actions/list-modules
+        working-directory: ./project
+      - name: Print modules
+        run: echo ${{ steps.list-modules.outputs.modules }}
     outputs:
-      identifiers: ${{ steps.set-matrix.outputs.identifiers }}
-  use-matrix:
+      modules: ${{ steps.list-modules.outputs.modules }}
+  scan-modules:
     runs-on: self-hosted
     needs: generate-matrix
     strategy:
       matrix:
-        identifier: ${{ fromJSON(needs.generate-matrix.outputs.identifiers) }}
+        module: ${{ fromJSON(needs.generate-matrix.outputs.modules) }}
     steps:
-      - name: Print ${{ matrix.identifier }}
+      - name: Print ${{ matrix.module }}
         run: |
-          echo ${{ matrix.identifier }}
+          echo ${{ matrix.module }}
         shell: bash

@@ -1,4 +1,4 @@
-name: Scan a maven project
+name: Scan
 on:
   workflow_dispatch:
     inputs:
