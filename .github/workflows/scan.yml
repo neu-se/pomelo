@@ -56,8 +56,8 @@ jobs:
           report: $REPORT_FILE
       - name: Print scan report
         env:
-        REPORT_FILE: /ci-logs/public/katie/pomelo/scan/${{ github.run_id }}/${{ strategy.job-index  }}
-        REPORT_LOCATION: public/katie/pomelo/scan/${{ github.run_id }}/${{ strategy.job-index  }}
+          REPORT_FILE: /ci-logs/public/katie/pomelo/scan/${{ github.run_id }}/${{ strategy.job-index  }}
+          REPORT_LOCATION: public/katie/pomelo/scan/${{ github.run_id }}/${{ strategy.job-index  }}
         run: |
           cat $REPORT_FILE
           echo "Report saved to: https://ci.in.ripley.cloud/logs/$REPORT_LOCATION"
