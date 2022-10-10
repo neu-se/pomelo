@@ -1,0 +1,29 @@
+name: Create dynamic matrix
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Name'
+        required: true
+        type: String
+jobs:
+  generate-matrix:
+    runs-on: self-hosted
+    steps:
+      - id: set-matrix
+        run: |
+          echo '::set-output name=identifiers::["a","b","c"]'
+        shell: bash
+    outputs:
+      identifiers: ${{ steps.set-matrix.outputs.identifiers }}
+  use-matrix:
+    runs-on: self-hosted
+    needs: generate-matrix
+    strategy:
+      matrix:
+        identifier: ${{ fromJSON(needs.generate-matrix.outputs.identifiers) }}
+    steps:
+      - name: Print ${{ matrix.identifier }}
+        run: |
+          echo ${{ matrix.identifier }}
+        shell: bash
