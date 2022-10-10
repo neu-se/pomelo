@@ -18,7 +18,7 @@ jobs:
       - name: Build Pomelo
         uses: ./pomelo/.github/actions/build
         with:
-          project: pomelo
+          path: ./pomelo
           skip_tests: true
       - name: Checkout project
         uses: actions/checkout@v3
