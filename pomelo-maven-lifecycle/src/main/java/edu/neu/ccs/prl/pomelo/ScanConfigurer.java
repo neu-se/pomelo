@@ -23,14 +23,7 @@ public final class ScanConfigurer {
     }
 
     private static void initializeScanReport(MavenSession session) throws MavenExecutionException {
-        String path = session.getUserProperties().getProperty("pomelo.scan.report");
-        File report;
-        if (path == null) {
-            report = new File(session.getTopLevelProject().getBuild().getDirectory(), "pomelo" + "-scan.txt");
-            session.getUserProperties().put("pomelo.scan.report", report.getAbsolutePath());
-        } else {
-            report = new File(path);
-        }
+        File report = new File(PomeloLifecycleParticipant.getRequiredProperty(session, "pomelo.scan.report"));
         try {
             FileUtil.ensureNew(report);
             Files.write(report.toPath(), Collections.singletonList(ReportEntry.getCsvHeader()));
