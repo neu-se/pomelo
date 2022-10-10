@@ -1,5 +1,5 @@
 name: 'Build'
-description: 'Builds the Maven project.'
+description: 'Builds a Maven project.'
 inputs:
   skip_tests:
     description: 'True if tests should be run.'

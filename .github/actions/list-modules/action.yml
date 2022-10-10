@@ -19,5 +19,6 @@ runs:
         MODULES=$(mvn -f ${{ inputs.path }} -Dexec.executable='echo' -Dexec.args='${project.groupId}:${project.artifactId}' exec:exec -q | \
         jq  --raw-input .  | \
         jq --slurp -c .)
+        echo $MODULES
         echo "::set-output name=modules::$MODULES"
       shell: bash
