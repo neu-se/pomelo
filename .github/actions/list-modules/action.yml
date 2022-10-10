@@ -17,7 +17,7 @@ runs:
         JAVA_HOME: /usr/lib/jvm/jdk1.8.0_301/
       run: |
         MODULES=$(mvn -f ${{ inputs.path }} -Dexec.executable='echo' -Dexec.args='${project.groupId}:${project.artifactId}' exec:exec -q | \
-        jq  --raw-input .  | \
+        jq --raw-input .  | \
         jq --slurp -c .)
         echo "::set-output name=modules::$MODULES"
       shell: bash

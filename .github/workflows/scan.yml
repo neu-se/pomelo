@@ -1,41 +1,64 @@
-name: Scan
+name: Scan Maven project
 on:
   workflow_dispatch:
     inputs:
       repository:
-        description: 'GitHub repository for the maven project.'
+        description: 'GitHub repository for the Maven project to be scanned.'
         required: true
         type: string
+      timeout:
+        description: "Amount of time after which forked test processes should be killed or 0 if test processes should 
+        never be timed out."
+        required: false
+        type: string
+        default: "0"
 jobs:
-  scan:
+  generate-matrix:
     runs-on: self-hosted
-    timeout-minutes: 2880
     steps:
       - name: Checkout Pomelo
         uses: actions/checkout@v3
         with:
           path: pomelo
-      - name: Build Pomelo
-        uses: ./pomelo/.github/actions/build
-        with:
-          path: ./pomelo
-          skip_tests: true
       - name: Checkout project
         uses: actions/checkout@v3
         with:
           repository: ${{ github.event.inputs.repository }}
           path: project
-      - name: Scan project
+      - name: List modules
+        id: list-modules
+        uses: ./pomelo/.github/actions/list-modules
+        with:
+          path: ./project
+    outputs:
+      modules: ${{ steps.list-modules.outputs.modules }}
+  scan-modules:
+    runs-on: self-hosted
+    timeout-minutes: 2880
+    needs: generate-matrix
+    strategy:
+      matrix:
+        module: ${{ fromJSON(needs.generate-matrix.outputs.modules) }}
+    steps:
+      - name: Checkout Pomelo
+        uses: actions/checkout@v3
+        with:
+          path: pomelo
+      - name: Scan ${{ github.event.inputs.repository }} ${{ matrix.module }}
         env:
-          JAVA_HOME: /usr/lib/jvm/jdk1.8.0_301/
-          REPORT: pomelo/pomelo-scan.txt
-          POMELO_EXTENSION_JAR: pomelo/pomelo-maven-lifecycle/target/pomelo-maven-lifecycle-1.0.0-SNAPSHOT.jar
-          MAVEN_OPTS: >
-            -Dhttps.protocols=TLSv1.2 -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true
-            -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN
-            -DinstallAtEnd=true
-          MAVEN_CLI_OPTS: --batch-mode --errors --fail-never --show-version
+          REPORT_FILE: /ci-logs/public/katie/pomelo/scan/${{ github.run_id }}/${{ strategy.job-index  }}
+        uses: ./pomelo/.github/actions/scan
+        with:
+          path: project
+          repository: ${{ github.event.inputs.repository }}
+          module: ${{ matrix.module }}
+          timeout: ${{ github.event.inputs.timeout }}
+          report: $REPORT_FILE
+      - name: Print scan report
+        env:
+        REPORT_FILE: /ci-logs/public/katie/pomelo/scan/${{ github.run_id }}/${{ strategy.job-index  }}
+        REPORT_LOCATION: public/katie/pomelo/scan/${{ github.run_id }}/${{ strategy.job-index  }}
         run: |
-          mvn -f project -Dmaven.ext.class.path=$POMELO_EXTENSION_JAR -Dpomelo.phase=scan -Dpomelo.scan.report=$REPORT $MAVEN_CLI_OPTS install
-          cat $REPORT
+          cat $REPORT_FILE
+          echo "Report saved to: https://ci.in.ripley.cloud/logs/$REPORT_LOCATION"
         shell: bash

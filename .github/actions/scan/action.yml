@@ -1,0 +1,57 @@
+name: "Scan module"
+description: 'Scan a module in a Maven Project.'
+inputs:
+  path:
+    description: 'Path to the Maven project.'
+    required: false
+    default: '.'
+  repository:
+    description: 'GitHub repository for the maven project.'
+    required: true
+  module:
+    description: 'Module to be scanned.'
+    required: true
+  timeout:
+    description: "Amount of time in seconds after which forked test processes should be killed or 0 if test processes 
+    should never be timed out."
+    required: true
+    default: "1800"
+  report:
+    description: "File to which the final report should be written."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Build Pomelo
+      uses: ./pomelo/.github/actions/build
+      with:
+        path: ./pomelo
+        skip_tests: true
+    - name: Checkout project
+      uses: actions/checkout@v3
+      with:
+        repository: ${{ inputs.repository }}
+        path: project
+    - name: Scan project
+      env:
+        JAVA_HOME: /usr/lib/jvm/jdk1.8.0_301/
+        REPORT: pomelo/pomelo-scan.txt
+        POMELO_EXTENSION_JAR: pomelo/pomelo-maven-lifecycle/target/pomelo-maven-lifecycle-1.0.0-SNAPSHOT.jar
+        MAVEN_OPTS: >
+          -Dhttps.protocols=TLSv1.2 
+          -Dorg.slf4j.simpleLogger.showDateTime=true 
+          -Djava.awt.headless=true
+          -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN
+          -DinstallAtEnd=true
+        MAVEN_CLI_OPTS: --batch-mode --errors --fail-never --show-version
+        POMELO_OPTS: >
+          -Dmaven.ext.class.path=$POMELO_EXTENSION_JAR 
+          -Dpomelo.phase=scan 
+          -Dpomelo.scan.report=$REPORT 
+          -Dsurefire.timeout=${{ inputs.timeout }}
+      run: |
+        mvn -f ${{ inputs.path }} -pl ${{ inputs.module }} -am install -DskipTests -q
+        mvn -f ${{ inputs.path }} -pl ${{ inputs.module }} $POMELO_OPTS -B -fn integration-test
+        mv $REPORT ${{ inputs.report }}
+      shell: bash
+
