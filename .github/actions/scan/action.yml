@@ -33,19 +33,18 @@ runs:
     - name: Scan project
       env:
         JAVA_HOME: /usr/lib/jvm/jdk1.8.0_301/
-        MAVEN_OPTS: >
+        MAVEN_OPTS: >-
           -Dhttps.protocols=TLSv1.2 
           -Dorg.slf4j.simpleLogger.showDateTime=true 
           -Djava.awt.headless=true
           -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN
           -DinstallAtEnd=true
-        POMELO_OPTS: >
+        POMELO_OPTS: >-
           -Dmaven.ext.class.path=pomelo/pomelo-maven-lifecycle/target/pomelo-maven-lifecycle-1.0.0-SNAPSHOT.jar
           -Dpomelo.phase=scan 
           -Dpomelo.scan.report=pomelo-scan.txt
           -Dsurefire.timeout=${{ inputs.timeout }}
       run: |
-        echo $POMELO_OPTS
         mvn -f ${{ inputs.path }} -pl ${{ inputs.module }} -am install -DskipTests -q
         mvn -f ${{ inputs.path }} -pl ${{ inputs.module }} $POMELO_OPTS -B -fn integration-test
         mv pomelo-scan.txt ${{ inputs.report }}
