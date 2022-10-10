@@ -32,7 +32,7 @@ jobs:
           path: ./project
       - name: Create report directory
         run: |
-          mkdirs /ci-logs/public/katie/pomelo/scan/${{ github.run_id }}/
+          mkdir -p /ci-logs/public/katie/pomelo/scan/${{ github.run_id }}/
         shell: bash
     outputs:
       modules: ${{ steps.list-modules.outputs.modules }}
