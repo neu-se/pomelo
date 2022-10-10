@@ -41,6 +41,7 @@ jobs:
     timeout-minutes: 2880
     needs: generate-matrix
     strategy:
+      fail-fast: false
       matrix:
         module: ${{ fromJSON(needs.generate-matrix.outputs.modules) }}
     steps:
@@ -65,4 +66,17 @@ jobs:
         run: |
           cat $REPORT_FILE
           echo "Report saved to: https://ci.in.ripley.cloud/logs/$REPORT_LOCATION"
+        shell: bash
+  create-report:
+    runs-on: self-hosted
+    if: always()
+    needs: scan-modules
+    steps:
+      - name: Print scan report
+        env:
+          REPORT_DIR: /ci-logs/public/katie/pomelo/scan/${{ github.run_id }}
+        run: |
+          head -1 -q $REPORT_DIR/*.csv | head -1 > $REPORT_DIR/report.csv
+          tail -n+2 -q $REPORT_DIR/*.csv >> $REPORT_DIR/report.csv
+          cat $REPORT_DIR/report.csv
         shell: bash
