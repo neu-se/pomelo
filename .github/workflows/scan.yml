@@ -38,7 +38,7 @@ jobs:
       modules: ${{ steps.list-modules.outputs.modules }}
   scan-modules:
     runs-on: self-hosted
-    timeout-minutes: 2880
+    timeout-minutes: 120
     needs: generate-matrix
     strategy:
       fail-fast: false
@@ -72,14 +72,16 @@ jobs:
     if: always()
     needs: scan-modules
     steps:
-      - name: Print scan report
+      - uses: actions/checkout@v3
+      - name: Create report
         env:
-          REPORT_DIR: /ci-logs/public/katie/pomelo/scan/${{ github.run_id }}
+          REPORT_PATH: public/katie/pomelo/scan/${{ github.run_id }}
+        uses: ./github/actions/scan-report
+        with:
+          input_dir: /ci-logs/$REPORT_PATH
+          output_file: /ci-logs/$REPORT_PATH/report.csv
+      - name: Print report
         run: |
-          cd "$REPORT_DIR"
-          HEADER="project_id,plugin_name,execution_id,test_class_name,test_method_name,runner_class_name,"
-          HEADER+="unambiguous,original_result,isolated_result,generators_status"
-          echo $HEADER > report.csv
-          tail -n+2 -q *.csv >> report.csv
-          cat report.csv
+          cat "/ci-logs/$REPORT_PATH/report.csv"
+          echo "View report at: https://ci.in.ripley.cloud/logs/$REPORT_PATH/report.csv"
         shell: bash

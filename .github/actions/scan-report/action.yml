@@ -1,0 +1,22 @@
+name: 'Create scan report'
+description: 'Processes results from scans and creates a report.'
+inputs:
+  input_dir:
+    description: 'Input directory containing the scans.'
+    required: true
+  output_file:
+    description: 'File to which the report should be written.'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+        cache: 'pip'
+    - run: |
+        python3 -m venv report
+        . report/bin/activate
+        pip install -r ./.github/scripts/requirements.txt
+        python3 ./.github/scripts/scan-report.py ${{ input_dir }} ${{ output_dir }}
+      shell: bash
