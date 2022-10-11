@@ -42,9 +42,8 @@ There are four ways you can add the Pomelo extension to your Maven build
 Pomelo can automatically scan a Maven build session to identify parameterized tests run by Surefire or Failsafe that
 can be fuzzed by Pomelo without modification.
 The scan checks whether a test can be run successfully with its original input values in isolation, in a forked JVM
-created
-in the same manner that Pomelo creates fuzzing JVMs.
-The scan also checks whether generators are available for the types of the test's parameters.
+created in the same manner that Pomelo creates fuzzing JVMs.
+The scan also checks whether generators are available for the test's parameters' types.
 
 To scan a Maven session, first add the Pomelo extension to your Maven build.
 Then, invoke maven as you would normally to build your project adding the following options:
