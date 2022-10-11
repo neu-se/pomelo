@@ -18,16 +18,16 @@ public class TestScanner {
     private final SurefireMojoWrapper wrapper;
     private final MojoExecution execution;
     private final File outputDir;
-    private final String pluginName;
+    private final TestPlugin plugin;
     private final Duration timeout;
     private final AppendingWriter writer;
 
     public TestScanner(SurefireMojoWrapper wrapper, MojoExecution execution, File scanReport, File outputDir,
-                       String pluginName, Duration timeout) throws MojoExecutionException {
+                       TestPlugin plugin, Duration timeout) throws MojoExecutionException {
         this.wrapper = wrapper;
         this.execution = execution;
         this.outputDir = outputDir;
-        this.pluginName = pluginName;
+        this.plugin = plugin;
         this.timeout = timeout;
         try {
             this.writer = new AppendingWriter(scanReport);
@@ -64,8 +64,7 @@ public class TestScanner {
 
     private ReportEntry processRecord(File tempDir, TestRecord record, TestLauncher launcher)
             throws MojoExecutionException {
-        ReportEntry entry =
-                new ReportEntry(wrapper.getProject().getId(), pluginName, execution.getExecutionId(), record);
+        ReportEntry entry = new ReportEntry(wrapper.getProject().getId(), plugin, execution.getExecutionId(), record);
         if (record.passed() && record.isUnambiguous()) {
             return performIsolatedRun(launcher, record, tempDir, entry);
         } else {
@@ -77,10 +76,10 @@ public class TestScanner {
             throws MojoExecutionException {
         File report = PluginUtil.ensureNew(new File(tempDir, "report.txt"));
         Process process = launcher.launchScanFork(record.getTestClassName(), record.getTestMethodName(), report);
-        if(!waitForIsolatedRun(process)) {
+        if (!waitForIsolatedRun(process)) {
             return entry.withIsolatedResult(TestResult.TIMED_OUT);
         }
-        if(process.exitValue() != 0) {
+        if (process.exitValue() != 0) {
             return entry.withIsolatedResult(TestResult.ERROR);
         }
         List<String> lines = PluginUtil.readLines(report);
@@ -90,7 +89,7 @@ public class TestScanner {
 
     private boolean waitForIsolatedRun(Process process) {
         try {
-            if(timeout != null) {
+            if (timeout != null) {
                 return ProcessUtil.waitFor(process, timeout.toMillis(), TimeUnit.MILLISECONDS);
             } else {
                 ProcessUtil.waitFor(process);

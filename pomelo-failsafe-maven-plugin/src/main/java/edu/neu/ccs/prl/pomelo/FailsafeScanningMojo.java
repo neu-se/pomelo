@@ -1,5 +1,6 @@
 package edu.neu.ccs.prl.pomelo;
 
+import edu.neu.ccs.prl.pomelo.scan.TestPlugin;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -41,6 +42,6 @@ public class FailsafeScanningMojo extends IntegrationTestMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         Duration timeout = scanTimeout == 0 ? null : Duration.ofSeconds(scanTimeout);
-        new TestScanner(wrapper, mojoExecution, scanReport, outputDir, getPluginName(), timeout).scan();
+        new TestScanner(wrapper, mojoExecution, scanReport, outputDir, TestPlugin.FAILSAFE, timeout).scan();
     }
 }

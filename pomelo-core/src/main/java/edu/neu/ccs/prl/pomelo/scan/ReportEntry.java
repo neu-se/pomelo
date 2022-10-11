@@ -2,7 +2,7 @@ package edu.neu.ccs.prl.pomelo.scan;
 
 public class ReportEntry {
     private final String projectId;
-    private final String pluginName;
+    private final TestPlugin plugin;
     private final String executionId;
     private final String testClassName;
     private final String testMethodName;
@@ -12,15 +12,15 @@ public class ReportEntry {
     private final TestResult isolatedResult;
     private final GeneratorsStatus generatorsStatus;
 
-    public ReportEntry(String projectId, String pluginName, String executionId, String testClassName,
+    public ReportEntry(String projectId, TestPlugin plugin, String executionId, String testClassName,
                        String testMethodName, String runnerClassName, boolean unambiguous, TestResult originalResult,
                        TestResult isolatedResult, GeneratorsStatus generatorsStatus) {
-        if (projectId == null || pluginName == null || executionId == null || testClassName == null ||
+        if (projectId == null || plugin == null || executionId == null || testClassName == null ||
                 testMethodName == null || runnerClassName == null || generatorsStatus == null) {
             throw new NullPointerException();
         }
         this.projectId = projectId;
-        this.pluginName = pluginName;
+        this.plugin = plugin;
         this.executionId = executionId;
         this.testClassName = testClassName;
         this.testMethodName = testMethodName;
@@ -31,8 +31,8 @@ public class ReportEntry {
         this.generatorsStatus = generatorsStatus;
     }
 
-    public ReportEntry(String projectId, String pluginName, String executionId, TestRecord record) {
-        this(projectId, pluginName, executionId,
+    public ReportEntry(String projectId, TestPlugin plugin, String executionId, TestRecord record) {
+        this(projectId, plugin, executionId,
              record.getTestClassName(), record.getTestMethodName(),
              record.getRunnerClassName(), record.isUnambiguous(),
              record.passed() ? TestResult.PASSED : TestResult.FAILED,
@@ -40,23 +40,23 @@ public class ReportEntry {
     }
 
     public ReportEntry withIsolatedResult(TestResult isolatedResult) {
-        return new ReportEntry(projectId, pluginName, executionId, testClassName, testMethodName, runnerClassName,
+        return new ReportEntry(projectId, plugin, executionId, testClassName, testMethodName, runnerClassName,
                                unambiguous, originalResult, isolatedResult, generatorsStatus);
     }
 
     public ReportEntry withGeneratorsStatus(GeneratorsStatus generatorsStatus) {
-        return new ReportEntry(projectId, pluginName, executionId, testClassName, testMethodName, runnerClassName,
+        return new ReportEntry(projectId, plugin, executionId, testClassName, testMethodName, runnerClassName,
                                unambiguous, originalResult, isolatedResult, generatorsStatus);
     }
 
     public String toCsvRow() {
-        return String.format("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s", projectId, pluginName, executionId, testClassName,
+        return String.format("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s", projectId, plugin, executionId, testClassName,
                              testMethodName, runnerClassName, unambiguous, originalResult, isolatedResult,
                              generatorsStatus);
     }
 
     public static String getCsvHeader() {
-        return "project_id,plugin_name,execution_id,test_class_name,test_method_name,runner_class_name,unambiguous," +
+        return "project_id,plugin,execution_id,test_class_name,test_method_name,runner_class_name,unambiguous," +
                 "original_result,isolated_result,generators_status";
     }
 }

@@ -1,6 +1,6 @@
 # Pomelo
 
-Pomelo allows existing parameterized JUnit tests to fuzzed without modification using Surefire and Failsafe 
+Pomelo allows existing parameterized JUnit tests to fuzzed without modification using Surefire and Failsafe
 configurations.
 
 ## Adding the Pomelo extension to your Maven build
@@ -46,10 +46,13 @@ created in the same manner that Pomelo creates fuzzing JVMs.
 The scan also checks whether generators are available for the test's parameters' types.
 
 To scan a Maven session, first add the Pomelo extension to your Maven build.
-Then, invoke maven as you would normally to build your project adding the following options:
+Then, invoke maven as you would normally to build your project using a lifecycle phase
+(i.e., not by directly specifying a plugin goal) adding the following options:
 
 ```
--Dpomelo.phase=scan [-Dpomelo.scan.report=<X>] [-Dpomelo.scan.timeout=<Y>]
+-Dpomelo.phase=scan
+[-Dpomelo.scan.report=<X>]
+[-Dpomelo.scan.timeout=<Y>]
 ```
 
 Where:
@@ -62,11 +65,11 @@ Where:
 Pomelo's scan creates a CSV report with one row for each detected parameterized test.
 Each row has the following columns:
 
-- project_id: identifier for the Maven project for which the test was run
-- plugin_name: the plugin that ran the test, one of the following:
-    - surefire
-    - failsafe
-- execution_id: unique identifier for the plugin execution in which the test was run
+- project_id: identifier (in the format groupId:artifactId:version) for the Maven project for which the test was run
+- plugin: the plugin that ran the test, one of the following:
+    - SUREFIRE
+    - FAILSAFE
+- execution_id: identifier for the plugin execution in which the test was run
 - test_class_name: fully qualified name of the test class
 - test_method_name: name of the test method
 - runner_class_name: fully qualified name of the JUnit runner used to run the test
@@ -89,9 +92,39 @@ If a parameterized test's isolated_result is PASSED and its generators_status is
 fuzz the test without any modifications.
 
 ## Fuzzing an existing test
+
+Pomelo can fuzz an existing parameterized test using the same configuration as Surefire or Failsafe for the
+JVM use to run test.
+The scan checks whether a test can be run successfully with its original input values in isolation, in a forked JVM
+created in the same manner that Pomelo creates fuzzing JVMs.
+The scan also checks whether generators are available for the test's parameters' types.
+
+To fuzz an existing parameterized test, first add the Pomelo extension to your Maven build.
+Then, invoke maven as you would normally to run the test using a lifecycle phase
+(i.e., not by directly specifying a plugin goal) adding the following options:
+
 ```
--Dpomelo.phase=fuzz -Dpomelo.project=<J> -Dpomelo.execution=<E> -Dpomelo.plugin=<P> -Dpomelo.testClass=<C> -Dpomelo.testMethod=<M>
+-Dpomelo.phase=fuzz 
+-Dpomelo.project=<J> 
+-Dpomelo.plugin=<P> 
+-Dpomelo.execution=<E> 
+-Dpomelo.testClass=<C> 
+-Dpomelo.testMethod=<M>
+[-Dpomelo.duration=<D>]
+[-Dpomelo.outputDir=<F>]
 ```
+
+Where:
+* \<J\> is the identifier (in the format groupId:artifactId:version) of the Maven project whose test plugin configuration 
+should be used.
+* \<P\> is the test plugin whose configuration should be either, either SUREFIRE or FAILSAFE.
+* \<E\> is identifier for the plugin execution whose configuration should be used.
+* \<C\> is the fully-qualified name of the test class 
+* \<M\> is the name of the test method
+* \<D\> is the maximum amount of time to execute the fuzzing campaign for specified in the ISO-8601 duration format (
+  e.g., 2 days, 3 hours, and 4 minutes is "P2DT3H4M"). The default value is one day.
+* \<F\> is the path of the directory to which the output files should be written.
+The default value is ${project.build.directory}/pomelo.
 
 ## License
 
