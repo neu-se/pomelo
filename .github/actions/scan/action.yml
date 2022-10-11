@@ -45,9 +45,10 @@ runs:
           -Dpomelo.scan.report=pomelo-scan.txt
           -Dsurefire.timeout=${{ inputs.timeout }}
           -Dfailsafe.timeout=${{ inputs.timeout }}
+          -Dmaven.test.failure.ignore=true
       run: |
         mvn -f ${{ inputs.path }} -fn install -DskipTests -q
-        mvn -f ${{ inputs.path }} -pl ${{ inputs.module }} $POMELO_OPTS -B -fn integration-test
+        mvn -f ${{ inputs.path }} -pl ${{ inputs.module }} $POMELO_OPTS -B integration-test
         mv pomelo-scan.txt ${{ inputs.report }}
       shell: bash
 
