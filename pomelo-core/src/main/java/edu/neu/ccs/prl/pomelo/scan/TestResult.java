@@ -4,5 +4,6 @@ public enum TestResult {
     PASSED,
     FAILED,
     ERROR,
+    TIMED_OUT,
     NONE
 }

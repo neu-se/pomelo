@@ -8,6 +8,7 @@ import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Optional;
 
 @SuppressWarnings("unused")
@@ -16,7 +17,7 @@ public class PomeloTestExecutionListener implements TestExecutionListener {
     private TestPlan plan;
 
     @SuppressWarnings("unused")
-    public PomeloTestExecutionListener() {
+    public PomeloTestExecutionListener() throws IOException {
         String path = System.getProperty("pomelo.listener.report");
         if (path != null) {
             this.writer = new ListenerReportWriter(new File(path));

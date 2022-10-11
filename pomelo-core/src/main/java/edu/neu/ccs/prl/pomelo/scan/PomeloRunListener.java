@@ -6,13 +6,14 @@ import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunListener.ThreadSafe;
 
 import java.io.File;
+import java.io.IOException;
 
 @ThreadSafe
 public class PomeloRunListener extends RunListener {
     private final ListenerReportWriter writer;
 
     @SuppressWarnings("unused")
-    public PomeloRunListener() {
+    public PomeloRunListener() throws IOException {
         String path = System.getProperty("pomelo.listener.report");
         if (path != null) {
             this.writer = new ListenerReportWriter(new File(path));

@@ -9,34 +9,45 @@ import org.apache.maven.plugin.MojoFailureException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 public class TestScanner {
     private final SurefireMojoWrapper wrapper;
     private final MojoExecution execution;
-    private final File scanReport;
     private final File outputDir;
     private final String pluginName;
+    private final Duration timeout;
+    private final AppendingWriter writer;
 
     public TestScanner(SurefireMojoWrapper wrapper, MojoExecution execution, File scanReport, File outputDir,
-                       String pluginName) {
+                       String pluginName, Duration timeout) throws MojoExecutionException {
         this.wrapper = wrapper;
         this.execution = execution;
-        this.scanReport = scanReport;
         this.outputDir = outputDir;
         this.pluginName = pluginName;
+        this.timeout = timeout;
+        try {
+            this.writer = new AppendingWriter(scanReport);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Invalid scan report file:" + scanReport, e);
+        }
     }
 
     public void scan() throws MojoExecutionException, MojoFailureException {
         File tempDir = PluginUtil.createEmptyDirectory(new File(outputDir, "temp"));
-        writeReportEntries(processRecords(tempDir, performInitialScan(tempDir)));
+        List<TestRecord> records = performInitialScan(tempDir);
+        TestLauncher launcher = TestLauncher.create(wrapper, tempDir);
+        for (TestRecord record : records) {
+            writeReportEntry(processRecord(tempDir, record, launcher));
+        }
     }
 
-    private void writeReportEntries(List<ReportEntry> entries) throws MojoExecutionException {
+    private void writeReportEntry(ReportEntry entry) throws MojoExecutionException {
         try {
-            new AppendingWriter(scanReport).appendAll(ReportEntry.toCsvRows(entries));
+            writer.append(entry.toCsvRow());
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to write scan report entries", e);
         }
@@ -51,38 +62,44 @@ public class TestScanner {
         return readRecords(report);
     }
 
-    private List<ReportEntry> processRecords(File tempDir, List<TestRecord> records) throws MojoExecutionException {
-        TestLauncher launcher = TestLauncher.create(wrapper, tempDir);
-        List<ReportEntry> entries = new ArrayList<>(records.size());
-        for (TestRecord record : records) {
-            ReportEntry entry = new ReportEntry(wrapper.getProject().getId(), pluginName, execution.getExecutionId(),
-                                                record.getTestClassName(), record.getTestMethodName(),
-                                                record.getRunnerClassName(), record.isUnambiguous(),
-                                                record.passed() ? TestResult.PASSED : TestResult.FAILED,
-                                                TestResult.NONE, GeneratorsStatus.UNKNOWN);
-            if (record.passed() && record.isUnambiguous()) {
-                entry = performIsolatedRun(launcher, record, tempDir, entry);
-            }
-            entries.add(entry);
+    private ReportEntry processRecord(File tempDir, TestRecord record, TestLauncher launcher)
+            throws MojoExecutionException {
+        ReportEntry entry =
+                new ReportEntry(wrapper.getProject().getId(), pluginName, execution.getExecutionId(), record);
+        if (record.passed() && record.isUnambiguous()) {
+            return performIsolatedRun(launcher, record, tempDir, entry);
+        } else {
+            return entry;
         }
-        return entries;
     }
 
     private ReportEntry performIsolatedRun(TestLauncher launcher, TestRecord record, File tempDir, ReportEntry entry)
             throws MojoExecutionException {
         File report = PluginUtil.ensureNew(new File(tempDir, "report.txt"));
         Process process = launcher.launchScanFork(record.getTestClassName(), record.getTestMethodName(), report);
-        try {
-            if (ProcessUtil.waitFor(process) != 0) {
-                return entry.withIsolatedResult(TestResult.ERROR);
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+        if(!waitForIsolatedRun(process)) {
+            return entry.withIsolatedResult(TestResult.TIMED_OUT);
+        }
+        if(process.exitValue() != 0) {
             return entry.withIsolatedResult(TestResult.ERROR);
         }
         List<String> lines = PluginUtil.readLines(report);
         return entry.withGeneratorsStatus(GeneratorsStatus.valueOf(lines.get(0).trim()))
                     .withIsolatedResult(TestResult.valueOf(lines.get(1).trim()));
+    }
+
+    private boolean waitForIsolatedRun(Process process) {
+        try {
+            if(timeout != null) {
+                return ProcessUtil.waitFor(process, timeout.toMillis(), TimeUnit.MILLISECONDS);
+            } else {
+                ProcessUtil.waitFor(process);
+                return true;
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
     }
 
     private static List<TestRecord> readRecords(File file) throws MojoExecutionException {

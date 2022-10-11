@@ -7,15 +7,20 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
+import java.util.Collections;
 
 public final class AppendingWriter {
     private final File file;
 
-    public AppendingWriter(File file) {
+    public AppendingWriter(File file) throws IOException {
         if (!file.isFile()) {
-            throw new IllegalArgumentException("File does not exists or is not a normal file: " + file);
+            throw new IOException("File does not exists or is not a normal file: " + file);
         }
         this.file = file;
+    }
+
+    public void append(String entry) throws IOException {
+        appendAll(Collections.singletonList(entry));
     }
 
     public void appendAll(Iterable<String> entries) throws IOException {

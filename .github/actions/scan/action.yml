@@ -43,6 +43,7 @@ runs:
           -Dmaven.ext.class.path=pomelo/pomelo-maven-lifecycle/target/pomelo-maven-lifecycle-1.0.0-SNAPSHOT.jar
           -Dpomelo.phase=scan 
           -Dpomelo.scan.report=pomelo-scan.txt
+          -Dpomelo.scan.timeout=${{ inputs.timeout }}
           -Dsurefire.timeout=${{ inputs.timeout }}
           -Dfailsafe.timeout=${{ inputs.timeout }}
           -Dmaven.test.failure.ignore=true

@@ -1,8 +1,5 @@
 package edu.neu.ccs.prl.pomelo.scan;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 public class ReportEntry {
     private final String projectId;
     private final String pluginName;
@@ -34,6 +31,14 @@ public class ReportEntry {
         this.generatorsStatus = generatorsStatus;
     }
 
+    public ReportEntry(String projectId, String pluginName, String executionId, TestRecord record) {
+        this(projectId, pluginName, executionId,
+             record.getTestClassName(), record.getTestMethodName(),
+             record.getRunnerClassName(), record.isUnambiguous(),
+             record.passed() ? TestResult.PASSED : TestResult.FAILED,
+             TestResult.NONE, GeneratorsStatus.UNKNOWN);
+    }
+
     public ReportEntry withIsolatedResult(TestResult isolatedResult) {
         return new ReportEntry(projectId, pluginName, executionId, testClassName, testMethodName, runnerClassName,
                                unambiguous, originalResult, isolatedResult, generatorsStatus);
@@ -49,11 +54,6 @@ public class ReportEntry {
                              testMethodName, runnerClassName, unambiguous, originalResult, isolatedResult,
                              generatorsStatus);
     }
-
-    public static List<String> toCsvRows(List<ReportEntry> records) {
-        return records.stream().map(ReportEntry::toCsvRow).collect(Collectors.toList());
-    }
-
 
     public static String getCsvHeader() {
         return "project_id,plugin_name,execution_id,test_class_name,test_method_name,runner_class_name,unambiguous," +

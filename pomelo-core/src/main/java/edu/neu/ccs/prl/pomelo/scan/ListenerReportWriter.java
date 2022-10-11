@@ -17,7 +17,7 @@ public final class ListenerReportWriter {
     private final Set<TestMethod> tests = new HashSet<>();
     private final AppendingWriter writer;
 
-    public ListenerReportWriter(File file) {
+    public ListenerReportWriter(File file) throws IOException {
         this.writer = new AppendingWriter(file);
         Runtime.getRuntime().addShutdownHook(new Thread(this::writeReport));
     }
