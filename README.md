@@ -85,6 +85,9 @@ Each row has the following columns:
     - MISSING: if a generator could not be found for any of test's parameters' types
     - PRESENT: if a generator could be found for all of test's parameters' types
 
+If a parameterized test's isolated_result is PASSED and its generators_status is PRESENT, then Pomelo should be able to
+fuzz the test without any modifications.
+
 ## Fuzzing an existing test
 ```
 -Dpomelo.phase=fuzz -Dpomelo.project=<J> -Dpomelo.execution=<E> -Dpomelo.plugin=<P> -Dpomelo.testClass=<C> -Dpomelo.testMethod=<M>
