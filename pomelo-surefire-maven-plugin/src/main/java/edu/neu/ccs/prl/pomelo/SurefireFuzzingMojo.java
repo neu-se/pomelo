@@ -1,13 +1,11 @@
 package edu.neu.ccs.prl.pomelo;
 
-import edu.neu.ccs.prl.meringue.FileUtil;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.surefire.SurefirePlugin;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -62,7 +60,7 @@ public class SurefireFuzzingMojo extends SurefirePlugin {
         getLog().info(String.format("Fuzzing %s#%s", testClass, testMethod));
         PluginUtil.createEmptyDirectory(outputDir);
         File tempDir = PluginUtil.createEmptyDirectory(new File(outputDir, "temp"));
-        TestLauncher launcher = TestLauncher.create(new SurefireMojoWrapper(this, super::execute), tempDir);
+        TestLauncher launcher = new TestLauncher(new SurefireMojoWrapper(this, super::execute), tempDir);
         // TODO
     }
 }

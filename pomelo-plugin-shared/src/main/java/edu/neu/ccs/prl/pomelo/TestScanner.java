@@ -39,7 +39,7 @@ public class TestScanner {
     public void scan() throws MojoExecutionException, MojoFailureException {
         File tempDir = PluginUtil.createEmptyDirectory(new File(outputDir, "temp"));
         List<TestRecord> records = performInitialScan(tempDir);
-        TestLauncher launcher = TestLauncher.create(wrapper, tempDir);
+        TestLauncher launcher = new TestLauncher(wrapper, tempDir);
         for (TestRecord record : records) {
             writeReportEntry(processRecord(tempDir, record, launcher));
         }

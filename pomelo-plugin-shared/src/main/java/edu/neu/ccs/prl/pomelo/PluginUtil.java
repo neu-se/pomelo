@@ -2,15 +2,11 @@ package edu.neu.ccs.prl.pomelo;
 
 import edu.neu.ccs.prl.pomelo.util.FileUtil;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.surefire.SurefireHelper;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public final class PluginUtil {
     private PluginUtil() {
