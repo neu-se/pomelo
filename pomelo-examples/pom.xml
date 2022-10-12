@@ -29,7 +29,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>-Dpomelo.examples.value0=hello</argLine>
+                    <argLine>-Dpomelo.examples.value0=hello -Dpomelo.color=" teal"   </argLine>
                     <environmentVariables>
                         <pomelo_examples_value1>world</pomelo_examples_value1>
                     </environmentVariables>

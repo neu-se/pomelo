@@ -1,101 +1,65 @@
 package edu.neu.ccs.prl.pomelo;
 
+import edu.neu.ccs.prl.meringue.FileUtil;
 import edu.neu.ccs.prl.meringue.JvmLauncher;
 import edu.neu.ccs.prl.pomelo.scan.ScanForkMain;
 import edu.neu.ccs.prl.pomelo.util.SystemPropertyUtil;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.surefire.JdkAttributes;
-import org.apache.maven.plugin.surefire.booterclient.ForkConfiguration;
-import org.apache.maven.plugin.surefire.booterclient.Platform;
-import org.apache.maven.surefire.booter.StartupConfiguration;
-import org.apache.maven.surefire.booter.SurefireBooterForkException;
-import org.apache.maven.surefire.shared.utils.cli.Commandline;
-import org.apache.maven.surefire.shared.utils.cli.ShutdownHookUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Properties;
 
 public class TestLauncher {
-    private final File propertiesFile;
-    private final Map<String, String> environment;
-    private final File workingDirectory;
-    private final File javaExec;
     private final File jar;
-    private final String[] options;
+    private final TestJvmConfiguration configuration;
+    private final File temporaryDir;
 
-    public TestLauncher(SurefireMojoWrapper mojo, File tempDir) throws MojoExecutionException {
-        boolean enableAssertions = mojo.effectiveIsEnableAssertions();
-        JdkAttributes jdkAttributes = mojo.getJdkAttributes();
-        Commandline commandline = createCommandline(mojo, jdkAttributes, tempDir);
-        // Find the JAR specified in the options
-        List<String> optionList = new LinkedList<>(Arrays.asList(commandline.getArguments()));
-        int position = optionList.indexOf("-jar");
-        if (position == -1 || position + 1 >= optionList.size()) {
-            throw new MojoExecutionException("Unable to location manifest JAR");
+    public TestLauncher(SurefireMojoWrapper mojo, File temporaryDir) throws MojoExecutionException {
+        this.configuration = mojo.extractTestJvmConfiguration();
+        this.temporaryDir = temporaryDir;
+
+        this.jar = new File(temporaryDir, "test.jar");
+        try {
+            FileUtil.buildManifestJar(configuration.getTestClassPathElements(), jar);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to build test classpath manifest JAR", e);
         }
-        this.jar = new File(optionList.remove(position + 1));
-        optionList.remove(position);
-        if (enableAssertions) {
-            optionList.add("-ea");
-        }
-        this.propertiesFile = writeProperties(mojo, tempDir);
-        this.options = optionList.toArray(new String[0]);
-        this.environment = convertEnvironment(commandline.getEnvironmentVariables());
-        this.workingDirectory = commandline.getWorkingDirectory();
-        this.javaExec = jdkAttributes.getJvmExecutable();
     }
 
     public Process launchScanFork(String testClass, String testMethod, File report) throws MojoExecutionException {
+        int forkNumber = 0;
+        File propertiesFile = writeProperties(configuration.getSystemProperties(forkNumber),
+                                              new File(temporaryDir, "pomelo" + forkNumber + ".properties"));
         String[] arguments =
                 new String[]{testClass, testMethod, propertiesFile.getAbsolutePath(), report.getAbsolutePath()};
+        List<String> options = configuration.getJavaOptions(forkNumber);
+        if (configuration.isDebug()) {
+            options.add(JvmLauncher.DEBUG_OPT + "5005");
+        }
+        options.add("-cp");
+        options.add(jar.getAbsolutePath());
         try {
-            return JvmLauncher.fromMain(javaExec, ScanForkMain.class.getName(), options, true, arguments,
-                                        workingDirectory, environment)
-                              .appendOptions("-cp", jar.getAbsolutePath())
-                              .launch();
+            JvmLauncher launcher = JvmLauncher.fromMain(configuration.getJavaExecutable(), ScanForkMain.class.getName(),
+                                                        options.toArray(new String[0]), true, arguments,
+                                                        configuration.getWorkingDirectory(forkNumber),
+                                                        configuration.getEnvironment())
+                                              .withArguments(testClass, testMethod, propertiesFile.getAbsolutePath(),
+                                                             report.getAbsolutePath());
+            return launcher.launch();
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to create test fork", e);
         }
     }
 
-    private static Map<String, String> convertEnvironment(String[] environment) {
-        Map<String, String> map = new HashMap<>();
-        for (String entry : environment) {
-            int index = entry.indexOf('=');
-            if (index != -1) {
-                map.put(entry.substring(0, index), entry.substring(index + 1));
-            }
-        }
-        return map;
-    }
-
-    private static File writeProperties(SurefireMojoWrapper mojo, File outputDir) throws MojoExecutionException {
-        Properties javaSystemProperties = mojo.setupProperties();
-        File propsFile = PluginUtil.ensureNew(new File(outputDir, "pomelo.properties"));
+    private static File writeProperties(Properties properties, File file) throws MojoExecutionException {
+        PluginUtil.ensureNew(file);
         try {
-            SystemPropertyUtil.store(propsFile, "system", javaSystemProperties);
+            SystemPropertyUtil.store(file, "system", properties);
         } catch (IOException e) {
-            throw new MojoExecutionException("Failed to write properties file: " + propsFile, e);
+            throw new MojoExecutionException("Failed to write properties to file: " + file, e);
         }
-        return propsFile;
-    }
-
-    private static Commandline createCommandline(SurefireMojoWrapper mojo, JdkAttributes jdkAttributes, File outputDir)
-            throws MojoExecutionException {
-        mojo.configure();
-        Platform platform = new Platform().withJdkExecAttributesForTests(jdkAttributes);
-        Thread shutdownThread = new Thread(platform::setShutdownState);
-        ShutdownHookUtils.addShutDownHook(shutdownThread);
-        try {
-            StartupConfiguration startupConfiguration = mojo.createStartupConfiguration();
-            ForkConfiguration forkConfiguration = mojo.createForkConfiguration(platform, outputDir);
-            return forkConfiguration.createCommandLine(startupConfiguration, 0, outputDir);
-        } catch (SurefireBooterForkException e) {
-            throw new MojoExecutionException("Failed to create commandline for test", e);
-        } finally {
-            platform.clearShutdownState();
-            ShutdownHookUtils.removeShutdownHook(shutdownThread);
-        }
+        return file;
     }
 }

@@ -6,19 +6,12 @@ import org.apache.maven.plugin.surefire.AbstractSurefireMojo;
 import org.apache.maven.plugin.surefire.JdkAttributes;
 import org.apache.maven.plugin.surefire.SurefireHelper;
 import org.apache.maven.plugin.surefire.SurefireProperties;
-import org.apache.maven.plugin.surefire.booterclient.JarManifestForkConfiguration;
-import org.apache.maven.plugin.surefire.booterclient.Platform;
-import org.apache.maven.plugin.surefire.extensions.LegacyForkNodeFactory;
 import org.apache.maven.plugin.surefire.log.PluginConsoleLogger;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.surefire.api.cli.CommandLineOption;
-import org.apache.maven.surefire.booter.ClassLoaderConfiguration;
 import org.apache.maven.surefire.booter.Classpath;
-import org.apache.maven.surefire.booter.StartupConfiguration;
-import org.apache.maven.surefire.providerapi.ProviderInfo;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Properties;
@@ -35,11 +28,10 @@ public final class SurefireMojoWrapper {
         this.execute = execute;
     }
 
-    public boolean effectiveIsEnableAssertions() {
-        return mojo.effectiveIsEnableAssertions();
-    }
     public Properties getProperties() throws MojoExecutionException {
-        Properties properties = invokeMethod(mojo, getMethod("getProperties"), Properties.class);
+        Properties properties =
+                PluginUtil.invokeMethod(PluginUtil.getDeclaredMethod(AbstractSurefireMojo.class, "getProperties"), mojo,
+                                        Properties.class);
         if (properties == null) {
             properties = new Properties();
             mojo.setProperties(properties);
@@ -56,62 +48,42 @@ public final class SurefireMojoWrapper {
         return systemProperties;
     }
 
-    public SurefireProperties setupProperties() throws MojoExecutionException {
-        return invokeMethod(mojo, getMethod("setupProperties"), SurefireProperties.class);
-    }
-
-    public StartupConfiguration createStartupConfiguration() throws MojoExecutionException {
-        Class<?> testClassPathClass = findClass("org.apache.maven.plugin.surefire.TestClassPath");
-        Object testClassPath = invokeMethod(mojo, getMethod("generateTestClasspath"), Object.class);
-        ClassLoaderConfiguration classLoaderConfiguration =
-                invokeMethod(mojo, getMethod("getClassLoaderConfiguration"), ClassLoaderConfiguration.class);
-        Method method = getMethod("newStartupConfigWithClasspath", ClassLoaderConfiguration.class, ProviderInfo.class,
-                                  testClassPathClass);
-        return invokeMethod(mojo, method, StartupConfiguration.class, classLoaderConfiguration, new EmptyProviderInfo(),
-                            testClassPath);
-    }
-
-    public String getEffectiveDebugForkedProcess() throws MojoExecutionException {
-        return invokeMethod(mojo, getMethod("getEffectiveDebugForkedProcess"), String.class);
-    }
-
-    public JarManifestForkConfiguration createForkConfiguration(Platform platform, File tempDir)
-            throws MojoExecutionException {
-        Classpath bootClasspath = Classpath.emptyClasspath();
-        File workingDir = mojo.getWorkingDirectory() != null ? mojo.getWorkingDirectory() : mojo.getBasedir();
-        return new JarManifestForkConfiguration(bootClasspath, tempDir, getEffectiveDebugForkedProcess(), workingDir,
-                                                getProject().getModel().getProperties(), mojo.getArgLine(),
-                                                mojo.getEnvironmentVariables(), getExcludedEnvironmentVariables(),
-                                                false, 1, true, platform, getConsoleLogger(),
-                                                new LegacyForkNodeFactory());
+    private Classpath getTestClassPath() throws MojoExecutionException {
+        Class<?> testClassPathClass = PluginUtil.findClass("org.apache.maven.plugin.surefire.TestClassPath");
+        Object testClassPath = PluginUtil.invokeMethod(
+                PluginUtil.getDeclaredMethod(AbstractSurefireMojo.class, "generateTestClasspath"), mojo, Object.class);
+        Method m = PluginUtil.getDeclaredMethod(testClassPathClass, "toClasspath");
+        return PluginUtil.invokeMethod(m, testClassPath, Classpath.class);
     }
 
     public String[] getExcludedEnvironmentVariables() throws MojoExecutionException {
-        return invokeMethod(mojo, getMethod("getExcludedEnvironmentVariables"), String[].class);
+        return PluginUtil.invokeMethod(
+                PluginUtil.getDeclaredMethod(AbstractSurefireMojo.class, "getExcludedEnvironmentVariables"), mojo,
+                String[].class);
     }
 
     public JdkAttributes getJdkAttributes() throws MojoExecutionException {
-        return invokeMethod(mojo, getMethod("getEffectiveJvm"), JdkAttributes.class);
+        return PluginUtil.invokeMethod(PluginUtil.getDeclaredMethod(AbstractSurefireMojo.class, "getEffectiveJvm"),
+                                       mojo, JdkAttributes.class);
     }
 
     public PluginConsoleLogger getConsoleLogger() throws MojoExecutionException {
-        return invokeMethod(mojo, getMethod("getConsoleLogger"), PluginConsoleLogger.class);
+        return PluginUtil.invokeMethod(PluginUtil.getDeclaredMethod(AbstractSurefireMojo.class, "getConsoleLogger"),
+                                       mojo, PluginConsoleLogger.class);
     }
 
     public void configure() throws MojoExecutionException {
-        // Force fork
-        mojo.setForkMode("once");
-        setField(mojo, "forkCount", "1");
-        setField(mojo, "reuseForks", true);
         // Disable skips
         mojo.setSkipTests(false);
         mojo.setSkip(false);
         mojo.setSkipExec(false);
         // Initialize configuration values
         List<CommandLineOption> options = SurefireHelper.commandLineOptions(mojo.getSession(), getConsoleLogger());
-        setField(mojo, "cli", options);
-        invokeMethod(mojo, getMethod("setupStuff"), void.class);
-        invokeMethod(mojo, getMethod("verifyParameters"), Boolean.class);
+        PluginUtil.setDeclaredField(AbstractSurefireMojo.class, "cli", mojo, options);
+        PluginUtil.invokeMethod(PluginUtil.getDeclaredMethod(AbstractSurefireMojo.class, "setupStuff"), mojo,
+                                void.class);
+        PluginUtil.invokeMethod(PluginUtil.getDeclaredMethod(AbstractSurefireMojo.class, "verifyParameters"), mojo,
+                                Boolean.class);
     }
 
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -122,46 +94,18 @@ public final class SurefireMojoWrapper {
         return mojo.getProject();
     }
 
-    private static void setField(AbstractSurefireMojo mojo, String fieldName, Object value)
-            throws MojoExecutionException {
-        try {
-            Field field = AbstractSurefireMojo.class.getDeclaredField(fieldName);
-            field.setAccessible(true);
-            if (field.getType().equals(boolean.class)) {
-                field.setBoolean(mojo, (Boolean) value);
-            } else {
-                field.set(mojo, value);
-            }
-        } catch (ReflectiveOperationException e) {
-            throw new MojoExecutionException("Failed to set field " + fieldName, e);
-        }
+    public SurefireProperties setupProperties() throws MojoExecutionException {
+        return PluginUtil.invokeMethod(PluginUtil.getDeclaredMethod(AbstractSurefireMojo.class, "setupProperties"),
+                                       mojo, SurefireProperties.class);
     }
 
-    private static Class<?> findClass(String className) throws MojoExecutionException {
-        try {
-            return Class.forName(className, true, AbstractSurefireMojo.class.getClassLoader());
-        } catch (ClassNotFoundException e) {
-            throw new MojoExecutionException("Unable to find class: " + className, e);
-        }
-    }
-
-    private static Method getMethod(String methodName, Class<?>... parameterTypes) throws MojoExecutionException {
-        try {
-            Method method = AbstractSurefireMojo.class.getDeclaredMethod(methodName, parameterTypes);
-            method.setAccessible(true);
-            return method;
-        } catch (ClassCastException | ReflectiveOperationException e) {
-            throw new MojoExecutionException("Failed to find method " + methodName, e);
-        }
-    }
-
-    private static <T> T invokeMethod(AbstractSurefireMojo mojo, Method method, Class<T> returnType, Object... args)
-            throws MojoExecutionException {
-        try {
-            return returnType.cast(method.invoke(mojo, args));
-        } catch (ClassCastException | ReflectiveOperationException e) {
-            throw new MojoExecutionException("Failed to invoke method " + method, e);
-        }
+    public TestJvmConfiguration extractTestJvmConfiguration() throws MojoExecutionException {
+        configure();
+        File workingDir = mojo.getWorkingDirectory() != null ? mojo.getWorkingDirectory() : mojo.getBasedir();
+        return new TestJvmConfiguration("true".equals(mojo.getDebugForkedProcess()), mojo.effectiveIsEnableAssertions(),
+                                        workingDir, getProject().getModel().getProperties(), mojo.getArgLine(),
+                                        mojo.getEnvironmentVariables(), getExcludedEnvironmentVariables(),
+                                        getJdkAttributes(), getTestClassPath(), setupProperties());
     }
 
     public interface PluginExecutable {
