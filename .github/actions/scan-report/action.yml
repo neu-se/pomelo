@@ -18,5 +18,5 @@ runs:
         python3 -m venv report
         . report/bin/activate
         pip install -r ./.github/scripts/requirements.txt
-        python3 ./.github/scripts/scan-report.py ${{ inputs.input_dir }} ${{ inputs.output_dir }}
+        python3 ./.github/scripts/scan-report.py ${{ inputs.input_dir }} ${{ inputs.output_file }}
       shell: bash
