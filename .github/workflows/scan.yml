@@ -76,7 +76,7 @@ jobs:
       - name: Create report
         env:
           REPORT_PATH: public/katie/pomelo/scan/${{ github.run_id }}
-        uses: ./github/actions/scan-report
+        uses: ./.github/actions/scan-report
         with:
           input_dir: /ci-logs/$REPORT_PATH
           output_file: /ci-logs/$REPORT_PATH/report.csv

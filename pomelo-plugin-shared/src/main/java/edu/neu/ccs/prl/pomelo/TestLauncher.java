@@ -32,8 +32,6 @@ public class TestLauncher {
         int forkNumber = 0;
         File propertiesFile = writeProperties(configuration.getSystemProperties(forkNumber),
                                               new File(temporaryDir, "pomelo" + forkNumber + ".properties"));
-        String[] arguments =
-                new String[]{testClass, testMethod, propertiesFile.getAbsolutePath(), report.getAbsolutePath()};
         List<String> options = configuration.getJavaOptions(forkNumber);
         if (configuration.isDebug()) {
             options.add(JvmLauncher.DEBUG_OPT + "5005");
@@ -42,7 +40,7 @@ public class TestLauncher {
         options.add(jar.getAbsolutePath());
         try {
             JvmLauncher launcher = JvmLauncher.fromMain(configuration.getJavaExecutable(), ScanForkMain.class.getName(),
-                                                        options.toArray(new String[0]), true, arguments,
+                                                        options.toArray(new String[0]), true, new String[0],
                                                         configuration.getWorkingDirectory(forkNumber),
                                                         configuration.getEnvironment())
                                               .withArguments(testClass, testMethod, propertiesFile.getAbsolutePath(),
