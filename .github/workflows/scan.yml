@@ -81,6 +81,8 @@ jobs:
           input_dir: /ci-logs/$REPORT_PATH
           output_file: /ci-logs/$REPORT_PATH/report.csv
       - name: Print report
+        env:
+          REPORT_PATH: public/katie/pomelo/scan/${{ github.run_id }}
         run: |
           cat "/ci-logs/$REPORT_PATH/report.csv"
           echo "View report at: https://ci.in.ripley.cloud/logs/$REPORT_PATH/report.csv"
