@@ -15,6 +15,7 @@ import static edu.neu.ccs.prl.pomelo.PomeloLifecycleParticipant.*;
 public final class ScanConfigurer {
     public void configure(MavenSession session) throws MavenExecutionException {
         initializeScanReport(session);
+        TestPluginType.replaceGoals(session, PomeloPhase.SCAN);
         addArtifactRepositories(session);
         session.getProjects().forEach(PomeloLifecycleParticipant::addCoreDependency);
         getAllTestPlugins(session).forEach(TestPluginType::removeUnsupportedGoals);
@@ -24,8 +25,9 @@ public final class ScanConfigurer {
 
     private static void initializeScanReport(MavenSession session) throws MavenExecutionException {
         String path = session.getUserProperties().getProperty("pomelo.scan.report");
-        File report = path == null ? new File(session.getTopLevelProject().getBuild().getDirectory(), "pomelo" +
-                "-scan.csv") : new File(path);
+        File report = path == null ?
+                new File(session.getTopLevelProject().getBuild().getDirectory(), "pomelo" + "-scan.csv") :
+                new File(path);
         try {
             FileUtil.ensureNew(report);
             Files.write(report.toPath(), Collections.singletonList(ReportEntry.getCsvHeader()));

@@ -46,8 +46,7 @@ created in the same manner that Pomelo creates fuzzing JVMs.
 The scan also checks whether generators are available for the test's parameters' types.
 
 To scan a Maven session, first add the Pomelo extension to your Maven build.
-Then, invoke maven as you would normally to build your project using a lifecycle phase
-(i.e., not by directly specifying a plugin goal) adding the following options:
+Then, invoke maven as you would normally to run tests adding the following options:
 
 ```
 -Dpomelo.phase=scan
@@ -100,8 +99,7 @@ created in the same manner that Pomelo creates fuzzing JVMs.
 The scan also checks whether generators are available for the test's parameters' types.
 
 To fuzz an existing parameterized test, first add the Pomelo extension to your Maven build.
-Then, invoke maven as you would normally to run the test using a lifecycle phase
-(i.e., not by directly specifying a plugin goal) adding the following options:
+Then, invoke maven as you would normally to run the test adding the following options:
 
 ```
 -Dpomelo.phase=fuzz 
