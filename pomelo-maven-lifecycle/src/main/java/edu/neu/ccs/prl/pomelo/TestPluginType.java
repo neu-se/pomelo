@@ -75,7 +75,7 @@ public enum TestPluginType {
         }
     }
 
-    private static String createGoalString(TestPluginType type, String goal, String executionId, PomeloPhase phase) {
+    private static String createGoalString(TestPluginType type, String goal, String executionId, PomeloTask phase) {
         String newGoal = String.format("%s-%s", phase.name().toLowerCase(), goal);
         String s = String.format("%s:%s:%s:%s", POMELO_PLUGINS_GROUP_ID, type.pomeloArtifactId,
                                  PomeloLifecycleParticipant.POMELO_VERSION, newGoal);
@@ -108,7 +108,7 @@ public enum TestPluginType {
         return null;
     }
 
-    private static String remapGoal(final String pluginGoal, PomeloPhase phase) {
+    private static String remapGoal(final String pluginGoal, PomeloTask phase) {
         // pluginPrefix:goal[@execution] or groupId:artifactId[:version]:goal[@execution]
         String executionId = getExecutionId(pluginGoal);
         String goalStart = pluginGoal;
@@ -132,7 +132,7 @@ public enum TestPluginType {
         return type.supportedGoals.contains(goal) ? createGoalString(type, goal, executionId, phase) : null;
     }
 
-    public static void replaceGoals(MavenSession session, PomeloPhase phase) {
+    public static void replaceGoals(MavenSession session, PomeloTask phase) {
         List<String> result = new ArrayList<>();
         for (String goal : session.getGoals()) {
             String g = remapGoal(goal, phase);

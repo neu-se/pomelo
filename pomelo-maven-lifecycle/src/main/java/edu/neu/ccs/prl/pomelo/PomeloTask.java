@@ -3,7 +3,7 @@ package edu.neu.ccs.prl.pomelo;
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.execution.MavenSession;
 
-public enum PomeloPhase {
+public enum PomeloTask {
     SCAN() {
         public void configure(MavenSession session) throws MavenExecutionException {
             new ScanConfigurer().configure(session);
@@ -16,12 +16,11 @@ public enum PomeloPhase {
 
     public abstract void configure(MavenSession session) throws MavenExecutionException;
 
-    public static PomeloPhase valueOf(MavenSession session, String name) throws MavenExecutionException {
+    public static PomeloTask valueOf(MavenSession session, String name) throws MavenExecutionException {
         try {
             return valueOf(name.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new MavenExecutionException("Invalid " + PomeloPhase.class + " name: " + name,
-                                              session.getRequest().getPom());
+            throw new MavenExecutionException("Invalid task: " + name, session.getRequest().getPom());
         }
     }
 }

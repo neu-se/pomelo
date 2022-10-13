@@ -15,7 +15,7 @@ import static edu.neu.ccs.prl.pomelo.PomeloLifecycleParticipant.*;
 public final class ScanConfigurer {
     public void configure(MavenSession session) throws MavenExecutionException {
         initializeScanReport(session);
-        TestPluginType.replaceGoals(session, PomeloPhase.SCAN);
+        TestPluginType.replaceGoals(session, PomeloTask.SCAN);
         addArtifactRepositories(session);
         session.getProjects().forEach(PomeloLifecycleParticipant::addCoreDependency);
         getAllTestPlugins(session).forEach(TestPluginType::removeUnsupportedGoals);

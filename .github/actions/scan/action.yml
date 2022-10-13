@@ -44,7 +44,7 @@ runs:
           -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN
         POMELO_OPTS: >-
           -Dmaven.ext.class.path=pomelo/pomelo-maven-lifecycle/target/pomelo-maven-lifecycle-1.0.0-SNAPSHOT.jar
-          -Dpomelo.phase=scan 
+          -Dpomelo.task=scan 
           -Dpomelo.scan.report=pomelo-scan.txt
           -Dpomelo.scan.timeout=${{ inputs.pomelo_timeout }}
           -Dsurefire.timeout=${{ inputs.timeout }}

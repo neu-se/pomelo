@@ -24,9 +24,9 @@ public class PomeloLifecycleParticipant extends AbstractMavenLifecycleParticipan
 
     @Override
     public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
-        String phaseName = session.getUserProperties().getProperty("pomelo.phase");
-        if (phaseName != null) {
-            PomeloPhase.valueOf(session, phaseName).configure(session);
+        String task = session.getUserProperties().getProperty("pomelo.task");
+        if (task != null) {
+            PomeloTask.valueOf(session, task).configure(session);
         }
     }
 

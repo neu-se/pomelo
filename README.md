@@ -49,7 +49,7 @@ To scan a Maven session, first add the Pomelo extension to your Maven build.
 Then, invoke maven as you would normally to run tests adding the following options:
 
 ```
--Dpomelo.phase=scan
+-Dpomelo.task=scan
 [-Dpomelo.scan.report=<X>]
 [-Dpomelo.scan.timeout=<Y>]
 [-Dpomelo.quiet]
@@ -106,7 +106,7 @@ To fuzz an existing parameterized test, first add the Pomelo extension to your M
 Then, invoke maven as you would normally to run the test adding the following options:
 
 ```
--Dpomelo.phase=fuzz 
+-Dpomelo.task=fuzz 
 -Dpomelo.project=<J> 
 -Dpomelo.plugin=<P> 
 -Dpomelo.execution=<E> 
