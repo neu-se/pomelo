@@ -92,5 +92,6 @@ jobs:
           REPORT_PATH: public/katie/pomelo/scan/${{ github.run_id }}
         run: |
           cat "/ci-logs/$REPORT_PATH/report.csv"
+          echo -e '\n'
           echo "View report at: https://ci.in.ripley.cloud/logs/$REPORT_PATH/report.csv"
         shell: bash
