@@ -89,6 +89,10 @@ public final class TestRecord {
         return String.format("%s,%s,%s,%s,%s", testClassName, testMethodName, runnerClassName, unambiguous, passed);
     }
 
+    public String getTestDescription() {
+        return testClassName + "#" + testMethodName;
+    }
+
     public static List<String> toCsvRows(Collection<TestRecord> records) {
         return records.stream().map(TestRecord::toCsvRow).collect(Collectors.toList());
     }

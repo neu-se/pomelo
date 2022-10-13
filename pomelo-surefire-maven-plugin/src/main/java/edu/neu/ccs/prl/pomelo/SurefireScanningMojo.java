@@ -32,15 +32,23 @@ public class SurefireScanningMojo extends SurefirePlugin {
     @Parameter(defaultValue = "${project.build.directory}/pomelo/scan", readonly = true, required = true)
     private File outputDir;
     /**
-     * Amount of time in seconds after which forked isolated Pomelo test processes should be killed. If set to 0, forked
-     * isolated Pomelo test processes are never timed out.
+     * Amount of time in seconds after which forked isolated test JVMs should be killed. If set to 0, forked isolated
+     * test JVMs should never be timed out.
      */
     @Parameter(property = "pomelo.scan.timeout", defaultValue = "0")
     private int scanTimeout;
+    /**
+     * True if the standard output and error of the forked isolated test JVMs should be discarded. By default, the
+     * standard output and error of the forked isolated test JVMs is redirected to the standard out and error of the
+     * Maven process.
+     */
+    @Parameter(property = "pomelo.quiet", defaultValue = "false")
+    private boolean quiet;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         Duration timeout = scanTimeout == 0 ? null : Duration.ofSeconds(scanTimeout);
-        new TestScanner(wrapper, mojoExecution, scanReport, outputDir, TestPlugin.SUREFIRE, timeout).scan();
+        new TestScanner(wrapper, mojoExecution, scanReport, outputDir, TestPlugin.SUREFIRE, timeout, quiet, getLog())
+                .scan();
     }
 }

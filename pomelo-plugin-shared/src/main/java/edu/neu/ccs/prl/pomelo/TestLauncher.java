@@ -28,19 +28,21 @@ public class TestLauncher {
         }
     }
 
-    public Process launchScanFork(String testClass, String testMethod, File report) throws MojoExecutionException {
+    public Process launchScanFork(String testClass, String testMethod, File report, boolean quiet)
+            throws MojoExecutionException {
         int forkNumber = 0;
         File propertiesFile = writeProperties(configuration.getSystemProperties(forkNumber),
                                               new File(temporaryDir, "pomelo" + forkNumber + ".properties"));
         List<String> options = configuration.getJavaOptions(forkNumber);
-        if (configuration.isDebug()) {
+        boolean debug = configuration.isDebug();
+        if (debug) {
             options.add(JvmLauncher.DEBUG_OPT + "5005");
         }
         options.add("-cp");
         options.add(jar.getAbsolutePath());
         try {
             JvmLauncher launcher = JvmLauncher.fromMain(configuration.getJavaExecutable(), ScanForkMain.class.getName(),
-                                                        options.toArray(new String[0]), true, new String[0],
+                                                        options.toArray(new String[0]), !quiet || debug, new String[0],
                                                         configuration.getWorkingDirectory(forkNumber),
                                                         configuration.getEnvironment())
                                               .withArguments(testClass, testMethod, propertiesFile.getAbsolutePath(),

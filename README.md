@@ -52,14 +52,18 @@ Then, invoke maven as you would normally to run tests adding the following optio
 -Dpomelo.phase=scan
 [-Dpomelo.scan.report=<X>]
 [-Dpomelo.scan.timeout=<Y>]
+[-Dpomelo.quiet]
 ```
 
 Where:
 
 * \<X\> is the path of the file to which the scan report should be written.
   The default value is ${project.build.directory}/pomelo-scan.csv.
-* \<Y\> is the amount of time in seconds after which forked isolated Pomelo test processes should be killed.
-  If set to 0, forked isolated Pomelo test processes are never timed out. The default value is 0.
+* \<Y\> is the amount of time in seconds after which forked isolated test JVMs should be killed.
+  If set to 0, forked isolated test JVMs are never timed out. The default value is 0.
+* The presence of -Dpomelo.quiet indicates that the standard output and error of the
+  forked isolated test JVMs should be discarded. By default, the standard output and error of the
+  forked isolated test JVMs is redirected to the standard out and error of the Maven process.
 
 Pomelo's scan creates a CSV report with one row for each detected parameterized test.
 Each row has the following columns:
