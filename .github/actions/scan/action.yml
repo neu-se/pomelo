@@ -11,8 +11,12 @@ inputs:
     description: 'Module to be scanned.'
     required: true
   timeout:
-    description: "Amount of time in seconds after which forked test processes should be killed or 0 if test processes 
-    should never be timed out."
+    description: "Amount of time in seconds after which forked surefire and failsafe test processes should be killed or 
+    0 if these test processes should never be timed out."
+    required: true
+  pomelo_timeout:
+    description: "Amount of time in seconds after which forked pomelo test processes should be killed or 
+    0 if these test processes should never be timed out."
     required: true
   report:
     description: "File to which the final report should be written."
@@ -43,12 +47,12 @@ runs:
           -Dmaven.ext.class.path=pomelo/pomelo-maven-lifecycle/target/pomelo-maven-lifecycle-1.0.0-SNAPSHOT.jar
           -Dpomelo.phase=scan 
           -Dpomelo.scan.report=pomelo-scan.txt
-          -Dpomelo.scan.timeout=${{ inputs.timeout }}
+          -Dpomelo.scan.timeout=${{ inputs.pomelo_timeout }}
           -Dsurefire.timeout=${{ inputs.timeout }}
           -Dfailsafe.timeout=${{ inputs.timeout }}
           -Dmaven.test.failure.ignore=true
       run: |
-        mvn -f ${{ inputs.path }} -fn install -DskipTests -q
+        mvn -f ${{ inputs.path }} -pl ${{ inputs.module }} -am install -DskipTests
         mvn -f ${{ inputs.path }} -pl ${{ inputs.module }} $POMELO_OPTS -B integration-test
         mv pomelo-scan.txt ${{ inputs.report }}
       shell: bash

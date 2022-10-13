@@ -7,11 +7,17 @@ on:
         required: true
         type: string
       timeout:
-        description: "Amount of time in seconds after which forked test processes should be killed or 0 if test processes should 
-        never be timed out."
+        description: "Amount of time in seconds after which forked surefire and failsafe test processes should be killed or 
+        0 if these test processes should never be timed out."
         required: false
         type: string
         default: "1800"
+      pomelo_timeout:
+        description: "Amount of time in seconds after which forked pomelo test processes should be killed or 
+        0 if these test processes should never be timed out."
+        required: false
+        type: string
+        default: "300"
 jobs:
   generate-matrix:
     runs-on: self-hosted
@@ -58,6 +64,7 @@ jobs:
           repository: ${{ github.event.inputs.repository }}
           module: ${{ matrix.module }}
           timeout: ${{ github.event.inputs.timeout }}
+          pomelo_timeout: ${{ github.event.inputs.pomelo_timeout }}
           report: $REPORT_FILE
       - name: Print scan report
         env:
