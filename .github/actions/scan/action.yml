@@ -42,7 +42,6 @@ runs:
           -Dorg.slf4j.simpleLogger.showDateTime=true 
           -Djava.awt.headless=true
           -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN
-          -DinstallAtEnd=true
         POMELO_OPTS: >-
           -Dmaven.ext.class.path=pomelo/pomelo-maven-lifecycle/target/pomelo-maven-lifecycle-1.0.0-SNAPSHOT.jar
           -Dpomelo.phase=scan 
