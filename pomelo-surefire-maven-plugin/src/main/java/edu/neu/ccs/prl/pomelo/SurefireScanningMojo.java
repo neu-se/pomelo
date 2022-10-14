@@ -9,10 +9,9 @@ import org.apache.maven.plugin.surefire.SurefirePlugin;
 import org.apache.maven.plugins.annotations.*;
 
 import java.io.File;
-import java.util.List;
 
 @Mojo(name = "scan-test", defaultPhase = LifecyclePhase.TEST, requiresDependencyResolution = ResolutionScope.TEST)
-public class SurefireScanningMojo extends SurefirePlugin implements ScanningMojo {
+public class SurefireScanningMojo extends SurefirePlugin {
     /**
      * The current execution of this plugin.
      */
@@ -26,7 +25,7 @@ public class SurefireScanningMojo extends SurefirePlugin implements ScanningMojo
     /**
      * Directory used to store internal temporary files created by Pomelo.
      */
-    @Parameter(defaultValue = "${project.build.directory}/pomelo/scan", readonly = true, required = true)
+    @Parameter(defaultValue = "${project.build.directory}/pomelo/scan/temp", readonly = true, required = true)
     private File temporaryDirectory;
     /**
      * Amount of time in seconds after which forked isolated test JVMs should be killed. If set to 0, forked isolated
@@ -43,52 +42,10 @@ public class SurefireScanningMojo extends SurefirePlugin implements ScanningMojo
     private boolean verbose;
     @Component
     private ResolutionErrorHandler errorHandler;
-    private DependencyResolver resolver;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        resolver = new DependencyResolver(getRepositorySystem(), getLocalRepository(), getRemoteRepositories(),
-                                          errorHandler, getSession().isOffline());
-        new TestScanner(this).scan();
-    }
-
-    @Override
-    public MojoExecution getMojoExecution() {
-        return mojoExecution;
-    }
-
-    @Override
-    public File getReport() {
-        return report;
-    }
-
-    @Override
-    public File getTemporaryDirectory() {
-        return temporaryDirectory;
-    }
-
-    @Override
-    public int getTimeout() {
-        return timeout;
-    }
-
-    @Override
-    public boolean isVerbose() {
-        return verbose;
-    }
-
-    @Override
-    public void executeSuper() throws MojoExecutionException, MojoFailureException {
-        super.execute();
-    }
-
-    @Override
-    public TestPluginType getOriginalPluginType() {
-        return TestPluginType.SUREFIRE;
-    }
-
-    @Override
-    public List<File> getCoreArtifactClasspath() throws MojoExecutionException {
-        return resolver.resolve(getPluginArtifactMap().get("edu.neu.ccs.prl.pomelo:pomelo-core"));
+        new TestScanner(this, timeout, errorHandler, temporaryDirectory, verbose, TestPluginType.SUREFIRE,
+                        mojoExecution, report, super::execute).scan();
     }
 }

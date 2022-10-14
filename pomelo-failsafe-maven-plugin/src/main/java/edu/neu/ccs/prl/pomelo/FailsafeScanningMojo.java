@@ -9,11 +9,10 @@ import org.apache.maven.plugin.failsafe.IntegrationTestMojo;
 import org.apache.maven.plugins.annotations.*;
 
 import java.io.File;
-import java.util.List;
 
 @Mojo(name = "scan-integration-test", requiresDependencyResolution = ResolutionScope.TEST,
         defaultPhase = LifecyclePhase.INTEGRATION_TEST)
-public class FailsafeScanningMojo extends IntegrationTestMojo implements ScanningMojo {
+public class FailsafeScanningMojo extends IntegrationTestMojo {
     /**
      * The current execution of this plugin.
      */
@@ -44,52 +43,10 @@ public class FailsafeScanningMojo extends IntegrationTestMojo implements Scannin
     private boolean verbose;
     @Component
     private ResolutionErrorHandler errorHandler;
-    private DependencyResolver resolver;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        resolver = new DependencyResolver(getRepositorySystem(), getLocalRepository(), getRemoteRepositories(),
-                                          errorHandler, getSession().isOffline());
-        new TestScanner(this).scan();
-    }
-
-    @Override
-    public MojoExecution getMojoExecution() {
-        return mojoExecution;
-    }
-
-    @Override
-    public File getReport() {
-        return report;
-    }
-
-    @Override
-    public File getTemporaryDirectory() {
-        return temporaryDirectory;
-    }
-
-    @Override
-    public int getTimeout() {
-        return timeout;
-    }
-
-    @Override
-    public boolean isVerbose() {
-        return verbose;
-    }
-
-    @Override
-    public void executeSuper() throws MojoExecutionException, MojoFailureException {
-        super.execute();
-    }
-
-    @Override
-    public TestPluginType getOriginalPluginType() {
-        return TestPluginType.FAILSAFE;
-    }
-
-    @Override
-    public List<File> getCoreArtifactClasspath() throws MojoExecutionException {
-        return resolver.resolve(getPluginArtifactMap().get("edu.neu.ccs.prl.pomelo:pomelo-core"));
+        new TestScanner(this, timeout, errorHandler, temporaryDirectory, verbose, TestPluginType.FAILSAFE,
+                        mojoExecution, report, super::execute).scan();
     }
 }

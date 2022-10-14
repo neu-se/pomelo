@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 import static org.apache.maven.plugin.surefire.SurefireHelper.replaceForkThreadsInPath;
 import static org.apache.maven.plugin.surefire.SurefireHelper.replaceThreadNumberPlaceholders;
 
-public class TestJvmConfiguration {
+public class JvmConfiguration {
     private final boolean debug;
     private final boolean enableAssertions;
     private final File rawWorkingDirectory;
@@ -31,19 +31,18 @@ public class TestJvmConfiguration {
     private final SurefireProperties rawSystemProperties;
     private final List<File> testClasspathElements;
 
-    public TestJvmConfiguration(boolean debug, boolean enableAssertions, File workingDirectory,
-                                Properties modelProperties, String argLine, Map<String, String> environmentVariables,
-                                String[] excludedEnvironmentVariables, JdkAttributes jdkAttributes,
-                                Classpath testClasspath, SurefireProperties rawSystemProperties) {
+    public JvmConfiguration(boolean debug, boolean enableAssertions, File workingDirectory, Properties modelProperties,
+                            String argLine, Map<String, String> environmentVariables,
+                            String[] excludedEnvironmentVariables, JdkAttributes jdkAttributes, Classpath testClasspath,
+                            SurefireProperties rawSystemProperties) {
         this.debug = debug;
         this.enableAssertions = enableAssertions;
         this.rawWorkingDirectory = workingDirectory;
         this.rawSystemProperties = rawSystemProperties;
         this.rawArgLine = interpolatePropertyExpressions(argLine, modelProperties).replaceAll("\\s", " ");
         this.javaExecutable = jdkAttributes.getJvmExecutable();
-        this.testClasspathElements = Collections.unmodifiableList(testClasspath.getClassPath().stream()
-                                                                               .map(File::new)
-                                                                               .collect(Collectors.toList()));
+        this.testClasspathElements = Collections.unmodifiableList(
+                testClasspath.getClassPath().stream().map(File::new).collect(Collectors.toList()));
         this.environment =
                 Collections.unmodifiableMap(createEnvironment(environmentVariables, excludedEnvironmentVariables));
     }
@@ -95,19 +94,20 @@ public class TestJvmConfiguration {
         }
     }
 
-    public void buildManifestJar(File jar, Collection<File> additionalClasspathElements)
+    public File buildManifestJar(File temporaryDirectory, Collection<File> additionalClasspathElements)
             throws MojoExecutionException {
+        File manifestJar = new File(temporaryDirectory, "pomelo-test.jar");
         List<File> elements = new ArrayList<>(testClasspathElements);
         elements.addAll(additionalClasspathElements);
         try {
-            FileUtil.buildManifestJar(elements, jar);
+            FileUtil.buildManifestJar(elements, manifestJar);
+            return manifestJar;
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to build test classpath manifest JAR", e);
         }
     }
 
-    public File writeSystemProperties(File temporaryDirectory,
-                                      int forkNumber) throws MojoExecutionException {
+    public File writeSystemProperties(File temporaryDirectory, int forkNumber) throws MojoExecutionException {
         File file = new File(temporaryDirectory, "pomelo" + forkNumber + ".properties");
         try {
             PluginUtil.ensureNew(file);
@@ -118,26 +118,18 @@ public class TestJvmConfiguration {
         return file;
     }
 
-    public JvmLauncher createLauncher(File temporaryDirectory,
-                                      int forkNumber,
-                                      Collection<File> additionalClasspathElements,
-                                      boolean verbose)
+    public JvmLauncher createLauncher(File temporaryDirectory, int forkNumber,
+                                      Collection<File> additionalClasspathElements, boolean verbose)
             throws MojoExecutionException {
-        File manifestJar = new File(temporaryDirectory, "pomelo-test.jar");
-        buildManifestJar(manifestJar, additionalClasspathElements);
+        File manifestJar = buildManifestJar(temporaryDirectory, additionalClasspathElements);
         List<String> options = getJavaOptions(forkNumber);
         if (debug) {
             options.add(JvmLauncher.DEBUG_OPT + "5005");
         }
         options.add("-cp");
         options.add(manifestJar.getAbsolutePath());
-        return JvmLauncher.fromMain(javaExecutable,
-                                    ScanForkMain.class.getName(),
-                                    options.toArray(new String[0]),
-                                    verbose || debug,
-                                    new String[0],
-                                    getWorkingDirectory(forkNumber),
-                                    environment);
+        return JvmLauncher.fromMain(javaExecutable, ScanForkMain.class.getName(), options.toArray(new String[0]),
+                                    verbose || debug, new String[0], getWorkingDirectory(forkNumber), environment);
     }
 
     private static String interpolatePropertyExpressions(String argLine, Properties modelProperties) {

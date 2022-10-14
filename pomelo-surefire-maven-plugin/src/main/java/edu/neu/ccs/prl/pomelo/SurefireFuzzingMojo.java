@@ -1,19 +1,27 @@
 package edu.neu.ccs.prl.pomelo;
 
+import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.surefire.SurefirePlugin;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.plugins.annotations.*;
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.shared.transfer.artifact.resolve.ArtifactResolver;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
 
 @Mojo(name = "fuzz-test", defaultPhase = LifecyclePhase.TEST, requiresDependencyResolution = ResolutionScope.TEST)
 public class SurefireFuzzingMojo extends SurefirePlugin {
+    /**
+     * The Maven session.
+     */
+    @Parameter(defaultValue = "${session}", readonly = true, required = true)
+    private MavenSession session;
+    /**
+     * The current Maven project.
+     */
+    @Parameter(defaultValue = "${project}", readonly = true, required = true)
+    private MavenProject project;
     /**
      * Fully-qualified name of the test class.
      *
@@ -37,29 +45,44 @@ public class SurefireFuzzingMojo extends SurefirePlugin {
     /**
      * Directory to which output files should be written.
      */
-    @Parameter(property = "pomelo.outputDir", defaultValue = "${project.build.directory}/pomelo")
-    private File outputDir;
+    @Parameter(property = "pomelo.outputDirectory", defaultValue = "${project.build.directory}/pomelo/out")
+    private File outputDirectory;
     /**
-     * Fully-qualified name of the fuzzing framework that should be used.
+     * Maximum number of frames to include in stack traces taken for failures. By default, a maximum of {@code 5} frames
+     * are included.
      */
-    @Parameter(property = "pomelo.framework", readonly = true, required = true)
-    private String framework;
+    @Parameter(property = "pomelo.maxTraceSize", defaultValue = "5")
+    private int maxTraceSize;
     /**
-     * Arguments used to configure the fuzzing framework.
+     * True if forked analysis JVMs should suspend and wait for a debugger to attach.
      */
-    @Parameter(readonly = true)
-    private Properties frameworkArguments = new Properties();
+    @Parameter(property = "pomelo.debug", defaultValue = "false")
+    private boolean debug;
     /**
-     * Java command line options that should be used for test JVMs.
+     * Maximum amount of time in seconds to execute a single input during analysis or {@code -1} if no timeout should be
+     * used. By default, a timeout value of {@code 600} seconds is used.
      */
-    @Parameter(property = "pomelo.javaOptions")
-    private List<String> javaOptions = new ArrayList<>();
+    @Parameter(property = "pomelo.timeout", defaultValue = "600")
+    private long timeout;
+    /**
+     * True if the standard output and error of the forked analysis JVMs should be redirected to the standard out and
+     * error of the Maven process. Otherwise, the standard output and error of the forked analysis JVMs is discarded.
+     */
+    @Parameter(property = "pomelo.verbose", defaultValue = "false")
+    private boolean verbose;
+    /**
+     * Directory used to store internal temporary files created by Pomelo.
+     */
+    @Parameter(defaultValue = "${project.build.directory}/pomelo/fuzz/temp", readonly = true, required = true)
+    private File temporaryDirectory;
+    @Component
+    private ArtifactResolver artifactResolver;
+    @Component
+    private ArtifactHandlerManager artifactHandlerManager;
 
     @Override
     public void execute() throws MojoExecutionException {
-        getLog().info(String.format("Fuzzing %s#%s", testClass, testMethod));
-        PluginUtil.createEmptyDirectory(outputDir);
-        File tempDir = PluginUtil.createEmptyDirectory(new File(outputDir, "temp"));
-        // TODO
+        new TestFuzzer(this, testClass, testMethod, duration, outputDirectory, maxTraceSize, debug, timeout,
+                       verbose, temporaryDirectory, artifactResolver, artifactHandlerManager).execute();
     }
 }

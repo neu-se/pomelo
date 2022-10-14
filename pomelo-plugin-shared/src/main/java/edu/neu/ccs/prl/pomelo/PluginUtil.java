@@ -15,7 +15,7 @@ public final class PluginUtil {
         throw new AssertionError();
     }
 
-    public static File createEmptyDirectory(File dir) throws MojoExecutionException {
+    public static File ensureEmptyDirectory(File dir) throws MojoExecutionException {
         try {
             edu.neu.ccs.prl.meringue.FileUtil.ensureEmptyDirectory(dir);
             return dir;

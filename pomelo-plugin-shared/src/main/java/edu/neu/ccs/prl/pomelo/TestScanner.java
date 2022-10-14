@@ -4,35 +4,50 @@ import edu.neu.ccs.prl.meringue.JvmLauncher;
 import edu.neu.ccs.prl.meringue.ProcessUtil;
 import edu.neu.ccs.prl.pomelo.scan.*;
 import edu.neu.ccs.prl.pomelo.util.AppendingWriter;
+import org.apache.maven.artifact.resolver.ResolutionErrorHandler;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.surefire.AbstractSurefireMojo;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class TestScanner {
-    private final SurefireMojoWrapper wrapper;
-    private final ScanningMojo mojo;
+    private final AbstractSurefireMojo mojo;
     private final AppendingWriter writer;
+    private final DependencyResolver resolver;
+    private final int timeout;
+    private final MojoExecutor executor;
+    private final File temporaryDirectory;
+    private final boolean verbose;
+    private final MojoExecution mojoExecution;
+    private final TestPluginType pluginType;
 
-    public TestScanner(ScanningMojo mojo) throws MojoExecutionException {
-        this.wrapper = new SurefireMojoWrapper((AbstractSurefireMojo) mojo);
+    public TestScanner(AbstractSurefireMojo mojo, int timeout, ResolutionErrorHandler errorHandler,
+                       File temporaryDirectory, boolean verbose, TestPluginType pluginType, MojoExecution mojoExecution,
+                       File report, MojoExecutor executor) throws MojoExecutionException {
         this.mojo = mojo;
+        this.timeout = timeout;
+        this.executor = executor;
+        this.resolver = new DependencyResolver(mojo.getRepositorySystem(), mojo.getLocalRepository(),
+                                               mojo.getRemoteRepositories(), errorHandler,
+                                               mojo.getSession().isOffline());
+        this.temporaryDirectory = temporaryDirectory;
+        this.verbose = verbose;
+        this.pluginType = pluginType;
+        this.mojoExecution = mojoExecution;
         try {
-            this.writer = new AppendingWriter(mojo.getReport());
+            this.writer = new AppendingWriter(report);
         } catch (IOException e) {
             throw new MojoExecutionException("Invalid scan report file", e);
         }
     }
 
     public void scan() throws MojoExecutionException, MojoFailureException {
-        PluginUtil.createEmptyDirectory(mojo.getTemporaryDirectory());
+        PluginUtil.ensureEmptyDirectory(temporaryDirectory);
         addPomeloCoreToClasspath();
         List<TestRecord> records = performInitialScan();
         JvmLauncher launcher = createLauncher();
@@ -42,20 +57,17 @@ public class TestScanner {
     }
 
     private void addPomeloCoreToClasspath() throws MojoExecutionException {
-        AbstractSurefireMojo m = (AbstractSurefireMojo) mojo;
-        String[] originalElements = m.getAdditionalClasspathElements();
+        String[] originalElements = mojo.getAdditionalClasspathElements();
         List<String> elements =
                 originalElements == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(originalElements));
-        mojo.getCoreArtifactClasspath().stream().map(File::getAbsolutePath).forEach(elements::add);
-        m.setAdditionalClasspathElements(elements.toArray(elements.toArray(new String[0])));
+        getCoreArtifactClasspath().stream().map(File::getAbsolutePath).forEach(elements::add);
+        mojo.setAdditionalClasspathElements(elements.toArray(elements.toArray(new String[0])));
     }
 
     private JvmLauncher createLauncher() throws MojoExecutionException {
-        TestJvmConfiguration config = wrapper.extractTestJvmConfiguration();
-        return config.createLauncher(mojo.getTemporaryDirectory(), 0, mojo.getCoreArtifactClasspath(),
-                                     mojo.isVerbose())
-                     .withArguments(config.writeSystemProperties(mojo.getTemporaryDirectory(), 0)
-                                          .getAbsolutePath());
+        JvmConfiguration config = new SurefireMojoWrapper(mojo).extractJvmConfiguration();
+        return config.createLauncher(temporaryDirectory, 0, Collections.emptyList(), verbose)
+                     .withArguments(config.writeSystemProperties(temporaryDirectory, 0).getAbsolutePath());
     }
 
     private void writeReportEntry(ReportEntry entry) throws MojoExecutionException {
@@ -67,19 +79,20 @@ public class TestScanner {
     }
 
     private List<TestRecord> performInitialScan() throws MojoExecutionException, MojoFailureException {
-        mojo.getLog().info(String.format("Executing tests with %s", mojo.getOriginalPluginType()));
-        File initial = PluginUtil.ensureNew(new File(mojo.getTemporaryDirectory(), "initial.txt"));
+        SurefireMojoWrapper wrapper = new SurefireMojoWrapper(mojo);
+        mojo.getLog().info(String.format("Executing tests with %s", pluginType));
+        File initial = PluginUtil.ensureNew(new File(temporaryDirectory, "initial.txt"));
         wrapper.getProperties().put("listener", PomeloRunListener.class.getName());
         Properties systemProperties = wrapper.getSystemProperties();
         systemProperties.put("pomelo.listener.report", initial.getAbsolutePath());
-        mojo.executeSuper();
+        executor.execute();
         mojo.getLog().info("> Finished executing tests");
         return readRecords(initial);
     }
 
     private ReportEntry processRecord(TestRecord record, JvmLauncher launcher) throws MojoExecutionException {
-        ReportEntry entry = new ReportEntry(wrapper.getProject().getId(), mojo.getOriginalPluginType(),
-                                            mojo.getMojoExecution().getExecutionId(), record);
+        ReportEntry entry =
+                new ReportEntry(mojo.getProject().getId(), pluginType, mojoExecution.getExecutionId(), record);
         if (record.passed() && record.isUnambiguous()) {
             return performIsolatedRun(launcher, record, entry);
         } else {
@@ -91,7 +104,7 @@ public class TestScanner {
     private ReportEntry performIsolatedRun(JvmLauncher launcher, TestRecord record, ReportEntry entry)
             throws MojoExecutionException {
         mojo.getLog().info(String.format("Starting isolated run for %s", record.getTestDescription()));
-        File report = PluginUtil.ensureNew(new File(mojo.getTemporaryDirectory(), "report.txt"));
+        File report = PluginUtil.ensureNew(new File(temporaryDirectory, "report.txt"));
         launcher = launcher.appendArguments(report.getAbsolutePath(), record.getTestClassName(),
                                             record.getTestMethodName());
         Process process;
@@ -116,8 +129,8 @@ public class TestScanner {
 
     private boolean waitForIsolatedRun(Process process) {
         try {
-            if (mojo.getTimeout() != 0) {
-                return ProcessUtil.waitFor(process, mojo.getTimeout(), TimeUnit.SECONDS);
+            if (timeout != 0) {
+                return ProcessUtil.waitFor(process, timeout, TimeUnit.SECONDS);
             } else {
                 ProcessUtil.waitFor(process);
                 return true;
@@ -137,5 +150,13 @@ public class TestScanner {
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to read initial Pomelo scan records", e);
         }
+    }
+
+    private List<File> getCoreArtifactClasspath() throws MojoExecutionException {
+        return resolver.resolve(mojo.getPluginArtifactMap().get("edu.neu.ccs.prl.pomelo:pomelo-core"));
+    }
+
+    public interface MojoExecutor {
+        void execute() throws MojoExecutionException, MojoFailureException;
     }
 }

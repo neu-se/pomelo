@@ -4,7 +4,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.surefire.AbstractSurefireMojo;
 import org.apache.maven.plugin.surefire.JdkAttributes;
 import org.apache.maven.plugin.surefire.SurefireProperties;
-import org.apache.maven.project.MavenProject;
 import org.apache.maven.surefire.booter.Classpath;
 
 import java.io.File;
@@ -72,21 +71,17 @@ public final class SurefireMojoWrapper {
                                 Boolean.class);
     }
 
-    public MavenProject getProject() {
-        return mojo.getProject();
-    }
-
     public SurefireProperties setupProperties() throws MojoExecutionException {
         return PluginUtil.invokeMethod(PluginUtil.getDeclaredMethod(AbstractSurefireMojo.class, "setupProperties"),
                                        mojo, SurefireProperties.class);
     }
 
-    public TestJvmConfiguration extractTestJvmConfiguration() throws MojoExecutionException {
+    public JvmConfiguration extractJvmConfiguration() throws MojoExecutionException {
         configure();
         File workingDir = mojo.getWorkingDirectory() != null ? mojo.getWorkingDirectory() : mojo.getBasedir();
-        return new TestJvmConfiguration("true".equals(mojo.getDebugForkedProcess()), mojo.effectiveIsEnableAssertions(),
-                                        workingDir, getProject().getModel().getProperties(), mojo.getArgLine(),
-                                        mojo.getEnvironmentVariables(), getExcludedEnvironmentVariables(),
-                                        getJdkAttributes(), getTestClassPath(), setupProperties());
+        return new JvmConfiguration("true".equals(mojo.getDebugForkedProcess()), mojo.effectiveIsEnableAssertions(),
+                                    workingDir, mojo.getProject().getModel().getProperties(), mojo.getArgLine(),
+                                    mojo.getEnvironmentVariables(), getExcludedEnvironmentVariables(),
+                                    getJdkAttributes(), getTestClassPath(), setupProperties());
     }
 }
