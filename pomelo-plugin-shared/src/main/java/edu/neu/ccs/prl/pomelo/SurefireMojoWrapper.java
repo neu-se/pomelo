@@ -3,16 +3,12 @@ package edu.neu.ccs.prl.pomelo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.surefire.AbstractSurefireMojo;
 import org.apache.maven.plugin.surefire.JdkAttributes;
-import org.apache.maven.plugin.surefire.SurefireHelper;
 import org.apache.maven.plugin.surefire.SurefireProperties;
-import org.apache.maven.plugin.surefire.log.PluginConsoleLogger;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.surefire.api.cli.CommandLineOption;
 import org.apache.maven.surefire.booter.Classpath;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.Properties;
 
 public final class SurefireMojoWrapper {
@@ -53,20 +49,15 @@ public final class SurefireMojoWrapper {
         return PluginUtil.invokeMethod(m, testClassPath, Classpath.class);
     }
 
-    public String[] getExcludedEnvironmentVariables() throws MojoExecutionException {
+    private String[] getExcludedEnvironmentVariables() throws MojoExecutionException {
         return PluginUtil.invokeMethod(
                 PluginUtil.getDeclaredMethod(AbstractSurefireMojo.class, "getExcludedEnvironmentVariables"), mojo,
                 String[].class);
     }
 
-    public JdkAttributes getJdkAttributes() throws MojoExecutionException {
+    private JdkAttributes getJdkAttributes() throws MojoExecutionException {
         return PluginUtil.invokeMethod(PluginUtil.getDeclaredMethod(AbstractSurefireMojo.class, "getEffectiveJvm"),
                                        mojo, JdkAttributes.class);
-    }
-
-    public PluginConsoleLogger getConsoleLogger() throws MojoExecutionException {
-        return PluginUtil.invokeMethod(PluginUtil.getDeclaredMethod(AbstractSurefireMojo.class, "getConsoleLogger"),
-                                       mojo, PluginConsoleLogger.class);
     }
 
     public void configure() throws MojoExecutionException {
@@ -75,8 +66,6 @@ public final class SurefireMojoWrapper {
         mojo.setSkip(false);
         mojo.setSkipExec(false);
         // Initialize configuration values
-        List<CommandLineOption> options = SurefireHelper.commandLineOptions(mojo.getSession(), getConsoleLogger());
-        PluginUtil.setDeclaredField(AbstractSurefireMojo.class, "cli", mojo, options);
         PluginUtil.invokeMethod(PluginUtil.getDeclaredMethod(AbstractSurefireMojo.class, "setupStuff"), mojo,
                                 void.class);
         PluginUtil.invokeMethod(PluginUtil.getDeclaredMethod(AbstractSurefireMojo.class, "verifyParameters"), mojo,
