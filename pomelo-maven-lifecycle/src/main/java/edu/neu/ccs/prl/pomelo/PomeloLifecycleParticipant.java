@@ -6,7 +6,6 @@ import org.apache.maven.artifact.repository.ArtifactRepositoryPolicy;
 import org.apache.maven.artifact.repository.MavenArtifactRepository;
 import org.apache.maven.artifact.repository.layout.DefaultRepositoryLayout;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.project.MavenProject;
@@ -17,9 +16,6 @@ import java.util.stream.Collectors;
 
 @Component(role = AbstractMavenLifecycleParticipant.class, hint = "pomelo")
 public class PomeloLifecycleParticipant extends AbstractMavenLifecycleParticipant {
-    static final String POMELO_VERSION = "1.0.0-SNAPSHOT";
-    static final String POMELO_GROUP_ID = "edu.neu.ccs.prl.pomelo";
-    static final String POMELO_CORE_ARTIFACT_ID = "pomelo-core";
     static final String SNAPSHOTS_REPO = "https://s01.oss.sonatype.org/content/repositories/snapshots";
 
     @Override
@@ -73,14 +69,5 @@ public class PomeloLifecycleParticipant extends AbstractMavenLifecycleParticipan
 
     static void reconfigureTestPluginExecutions(MavenSession session, Consumer<PluginExecution> consumer) {
         getAllTestPlugins(session).flatMap(p -> p.getExecutions().stream()).forEach(consumer);
-    }
-
-    static void addCoreDependency(MavenProject project) {
-        Dependency dependency = new Dependency();
-        dependency.setGroupId(POMELO_GROUP_ID);
-        dependency.setArtifactId(POMELO_CORE_ARTIFACT_ID);
-        dependency.setVersion(POMELO_VERSION);
-        dependency.setScope("test");
-        project.getDependencies().add(dependency);
     }
 }

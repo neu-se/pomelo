@@ -50,9 +50,9 @@ Then, invoke maven as you would normally to run tests adding the following optio
 
 ```
 -Dpomelo.task=scan
-[-Dpomelo.scan.report=<X>]
-[-Dpomelo.scan.timeout=<Y>]
-[-Dpomelo.quiet]
+[-Dpomelo.report=<X>]
+[-Dpomelo.timeout=<Y>]
+[-Dpomelo.verbose]
 ```
 
 Where:
@@ -61,9 +61,9 @@ Where:
   The default value is ${project.build.directory}/pomelo-scan.csv.
 * \<Y\> is the amount of time in seconds after which forked isolated test JVMs should be killed.
   If set to 0, forked isolated test JVMs are never timed out. The default value is 0.
-* The presence of -Dpomelo.quiet indicates that the standard output and error of the
-  forked isolated test JVMs should be discarded. By default, the standard output and error of the
-  forked isolated test JVMs is redirected to the standard out and error of the Maven process.
+* The presence of -Dpomelo.verbose indicates that the standard output and error of the
+  forked isolated test JVMs should be redirected to the standard out and error of the Maven process. By default, the
+  standard output and error of the forked isolated test JVMs is discarded.
 
 Pomelo's scan creates a CSV report with one row for each detected parameterized test.
 Each row has the following columns:
@@ -117,16 +117,18 @@ Then, invoke maven as you would normally to run the test adding the following op
 ```
 
 Where:
-* \<J\> is the identifier (in the format groupId:artifactId:version) of the Maven project whose test plugin configuration 
-should be used.
+
+* \<J\> is the identifier (in the format groupId:artifactId:version) of the Maven project whose test plugin
+  configuration
+  should be used.
 * \<P\> is the test plugin whose configuration should be either, either SUREFIRE or FAILSAFE.
 * \<E\> is identifier for the plugin execution whose configuration should be used.
-* \<C\> is the fully-qualified name of the test class 
+* \<C\> is the fully-qualified name of the test class
 * \<M\> is the name of the test method
 * \<D\> is the maximum amount of time to execute the fuzzing campaign for specified in the ISO-8601 duration format (
   e.g., 2 days, 3 hours, and 4 minutes is "P2DT3H4M"). The default value is one day.
 * \<F\> is the path of the directory to which the output files should be written.
-The default value is ${project.build.directory}/pomelo.
+  The default value is ${project.build.directory}/pomelo.
 
 ## License
 

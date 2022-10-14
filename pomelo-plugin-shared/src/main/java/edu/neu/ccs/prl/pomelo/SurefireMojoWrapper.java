@@ -1,7 +1,6 @@
 package edu.neu.ccs.prl.pomelo;
 
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.surefire.AbstractSurefireMojo;
 import org.apache.maven.plugin.surefire.JdkAttributes;
 import org.apache.maven.plugin.surefire.SurefireHelper;
@@ -18,14 +17,12 @@ import java.util.Properties;
 
 public final class SurefireMojoWrapper {
     private final AbstractSurefireMojo mojo;
-    private final PluginExecutable execute;
 
-    public SurefireMojoWrapper(AbstractSurefireMojo mojo, PluginExecutable execute) {
-        if (mojo == null || execute == null) {
+    public SurefireMojoWrapper(AbstractSurefireMojo mojo) {
+        if (mojo == null) {
             throw new NullPointerException();
         }
         this.mojo = mojo;
-        this.execute = execute;
     }
 
     public Properties getProperties() throws MojoExecutionException {
@@ -86,10 +83,6 @@ public final class SurefireMojoWrapper {
                                 Boolean.class);
     }
 
-    public void execute() throws MojoExecutionException, MojoFailureException {
-        execute.execute();
-    }
-
     public MavenProject getProject() {
         return mojo.getProject();
     }
@@ -106,9 +99,5 @@ public final class SurefireMojoWrapper {
                                         workingDir, getProject().getModel().getProperties(), mojo.getArgLine(),
                                         mojo.getEnvironmentVariables(), getExcludedEnvironmentVariables(),
                                         getJdkAttributes(), getTestClassPath(), setupProperties());
-    }
-
-    public interface PluginExecutable {
-        void execute() throws MojoExecutionException, MojoFailureException;
     }
 }

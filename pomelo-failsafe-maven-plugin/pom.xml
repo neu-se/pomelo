@@ -23,6 +23,10 @@
             <groupId>edu.neu.ccs.prl.pomelo</groupId>
             <artifactId>pomelo-plugin-shared</artifactId>
         </dependency>
+        <dependency>
+            <groupId>edu.neu.ccs.prl.pomelo</groupId>
+            <artifactId>pomelo-core</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

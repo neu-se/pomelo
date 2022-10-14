@@ -17,21 +17,20 @@ public final class ScanConfigurer {
         initializeScanReport(session);
         TestPluginType.replaceGoals(session, PomeloTask.SCAN);
         addArtifactRepositories(session);
-        session.getProjects().forEach(PomeloLifecycleParticipant::addCoreDependency);
         getAllTestPlugins(session).forEach(TestPluginType::removeUnsupportedGoals);
         reconfigureTestPluginExecutions(session, (e) -> prefixGoals(e, "scan-"));
         getAllTestPlugins(session).forEach(TestPluginType::replace);
     }
 
     private static void initializeScanReport(MavenSession session) throws MavenExecutionException {
-        String path = session.getUserProperties().getProperty("pomelo.scan.report");
+        String path = session.getUserProperties().getProperty("pomelo.report");
         File report = path == null ?
                 new File(session.getTopLevelProject().getBuild().getDirectory(), "pomelo" + "-scan.csv") :
                 new File(path);
         try {
             FileUtil.ensureNew(report);
             Files.write(report.toPath(), Collections.singletonList(ReportEntry.getCsvHeader()));
-            session.getUserProperties().put("pomelo.scan.report.absolute", report.getAbsolutePath());
+            session.getUserProperties().put("pomelo.report.internal", report.getAbsolutePath());
         } catch (IOException e) {
             throw new MavenExecutionException("Failed to initialize scan report", e);
         }

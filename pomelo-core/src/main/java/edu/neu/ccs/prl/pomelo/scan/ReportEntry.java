@@ -2,7 +2,7 @@ package edu.neu.ccs.prl.pomelo.scan;
 
 public class ReportEntry {
     private final String projectId;
-    private final TestPlugin plugin;
+    private final TestPluginType plugin;
     private final String executionId;
     private final String testClassName;
     private final String testMethodName;
@@ -12,7 +12,7 @@ public class ReportEntry {
     private final TestResult isolatedResult;
     private final GeneratorsStatus generatorsStatus;
 
-    public ReportEntry(String projectId, TestPlugin plugin, String executionId, String testClassName,
+    public ReportEntry(String projectId, TestPluginType plugin, String executionId, String testClassName,
                        String testMethodName, String runnerClassName, boolean unambiguous, TestResult originalResult,
                        TestResult isolatedResult, GeneratorsStatus generatorsStatus) {
         if (projectId == null || plugin == null || executionId == null || testClassName == null ||
@@ -31,7 +31,7 @@ public class ReportEntry {
         this.generatorsStatus = generatorsStatus;
     }
 
-    public ReportEntry(String projectId, TestPlugin plugin, String executionId, TestRecord record) {
+    public ReportEntry(String projectId, TestPluginType plugin, String executionId, TestRecord record) {
         this(projectId, plugin, executionId,
              record.getTestClassName(), record.getTestMethodName(),
              record.getRunnerClassName(), record.isUnambiguous(),

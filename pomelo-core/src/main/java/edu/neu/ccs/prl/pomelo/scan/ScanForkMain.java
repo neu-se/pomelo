@@ -19,12 +19,13 @@ public final class ScanForkMain {
     }
 
     public static void main(String[] args) throws Throwable {
-        // Set system properties before loading the test class
-        SystemPropertyUtil.load(new File(args[2]));
-        Class<?> testClass = Class.forName(args[0], true, ScanForkMain.class.getClassLoader());
-        String testMethodName = args[1];
+        // Usage: propertiesFilePath reportFilePath testClassName testMethodName
+        // Note: must set system properties before loading the test class
+        SystemPropertyUtil.load(new File(args[0]));
+        Class<?> testClass = Class.forName(args[2], true, ScanForkMain.class.getClassLoader());
+        String testMethodName = args[3];
         ParameterizedTestWrapper wrapper = ParameterizedTestType.wrap(new TestMethod(testClass, testMethodName));
-        File report = new File(args[3]);
+        File report = new File(args[1]);
         GeneratorsStatus status = checkGeneratorStatus(wrapper);
         TestResult result = getTestResult(testClass, testMethodName, wrapper);
         try (PrintWriter out = new PrintWriter(report)) {

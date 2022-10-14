@@ -1,53 +1,61 @@
 package edu.neu.ccs.prl.pomelo;
 
+import edu.neu.ccs.prl.meringue.JvmLauncher;
 import edu.neu.ccs.prl.meringue.ProcessUtil;
 import edu.neu.ccs.prl.pomelo.scan.*;
 import edu.neu.ccs.prl.pomelo.util.AppendingWriter;
-import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugin.surefire.AbstractSurefireMojo;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 public class TestScanner {
     private final SurefireMojoWrapper wrapper;
-    private final MojoExecution execution;
-    private final File outputDir;
-    private final TestPlugin plugin;
-    private final Duration timeout;
-    private final boolean quiet;
-    private final Log log;
+    private final ScanningMojo mojo;
     private final AppendingWriter writer;
 
-    public TestScanner(SurefireMojoWrapper wrapper, MojoExecution execution, File scanReport, File outputDir,
-                       TestPlugin plugin, Duration timeout, boolean quiet, Log log) throws MojoExecutionException {
-        this.wrapper = wrapper;
-        this.execution = execution;
-        this.outputDir = outputDir;
-        this.plugin = plugin;
-        this.timeout = timeout;
-        this.quiet = quiet;
-        this.log = log;
+    public TestScanner(ScanningMojo mojo) throws MojoExecutionException {
+        this.wrapper = new SurefireMojoWrapper((AbstractSurefireMojo) mojo);
+        this.mojo = mojo;
         try {
-            this.writer = new AppendingWriter(scanReport);
+            this.writer = new AppendingWriter(mojo.getReport());
         } catch (IOException e) {
-            throw new MojoExecutionException("Invalid scan report file:" + scanReport, e);
+            throw new MojoExecutionException("Invalid scan report file", e);
         }
     }
 
     public void scan() throws MojoExecutionException, MojoFailureException {
-        File tempDir = PluginUtil.createEmptyDirectory(new File(outputDir, "temp"));
-        List<TestRecord> records = performInitialScan(tempDir);
-        TestLauncher launcher = new TestLauncher(wrapper, tempDir);
+        PluginUtil.createEmptyDirectory(mojo.getTemporaryDirectory());
+        addPomeloCoreToClasspath();
+        List<TestRecord> records = performInitialScan();
+        JvmLauncher launcher = createLauncher();
         for (TestRecord record : records) {
-            writeReportEntry(processRecord(tempDir, record, launcher));
+            writeReportEntry(processRecord(record, launcher));
         }
+    }
+
+    private void addPomeloCoreToClasspath() throws MojoExecutionException {
+        AbstractSurefireMojo m = (AbstractSurefireMojo) mojo;
+        String[] originalElements = m.getAdditionalClasspathElements();
+        List<String> elements =
+                originalElements == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(originalElements));
+        mojo.getCoreArtifactClasspath().stream().map(File::getAbsolutePath).forEach(elements::add);
+        m.setAdditionalClasspathElements(elements.toArray(elements.toArray(new String[0])));
+    }
+
+    private JvmLauncher createLauncher() throws MojoExecutionException {
+        TestJvmConfiguration config = wrapper.extractTestJvmConfiguration();
+        return config.createLauncher(mojo.getTemporaryDirectory(), 0, mojo.getCoreArtifactClasspath(),
+                                     mojo.isVerbose())
+                     .withArguments(config.writeSystemProperties(mojo.getTemporaryDirectory(), 0)
+                                          .getAbsolutePath());
     }
 
     private void writeReportEntry(ReportEntry entry) throws MojoExecutionException {
@@ -58,42 +66,49 @@ public class TestScanner {
         }
     }
 
-    private List<TestRecord> performInitialScan(File tempDir) throws MojoExecutionException, MojoFailureException {
-        log.info(String.format("Executing tests with %s", plugin));
-        File report = PluginUtil.ensureNew(new File(tempDir, "report.txt"));
+    private List<TestRecord> performInitialScan() throws MojoExecutionException, MojoFailureException {
+        mojo.getLog().info(String.format("Executing tests with %s", mojo.getOriginalPluginType()));
+        File initial = PluginUtil.ensureNew(new File(mojo.getTemporaryDirectory(), "initial.txt"));
         wrapper.getProperties().put("listener", PomeloRunListener.class.getName());
         Properties systemProperties = wrapper.getSystemProperties();
-        systemProperties.put("pomelo.listener.report", report.getAbsolutePath());
-        wrapper.execute();
-        log.info("> Finished executing tests");
-        return readRecords(report);
+        systemProperties.put("pomelo.listener.report", initial.getAbsolutePath());
+        mojo.executeSuper();
+        mojo.getLog().info("> Finished executing tests");
+        return readRecords(initial);
     }
 
-    private ReportEntry processRecord(File tempDir, TestRecord record, TestLauncher launcher)
-            throws MojoExecutionException {
-        ReportEntry entry = new ReportEntry(wrapper.getProject().getId(), plugin, execution.getExecutionId(), record);
+    private ReportEntry processRecord(TestRecord record, JvmLauncher launcher) throws MojoExecutionException {
+        ReportEntry entry = new ReportEntry(wrapper.getProject().getId(), mojo.getOriginalPluginType(),
+                                            mojo.getMojoExecution().getExecutionId(), record);
         if (record.passed() && record.isUnambiguous()) {
-            return performIsolatedRun(launcher, record, tempDir, entry);
+            return performIsolatedRun(launcher, record, entry);
         } else {
-            log.info(String.format("> Skipping isolated run for %s", record.getTestDescription()));
+            mojo.getLog().info(String.format("> Skipping isolated run for %s", record.getTestDescription()));
             return entry;
         }
     }
 
-    private ReportEntry performIsolatedRun(TestLauncher launcher, TestRecord record, File tempDir, ReportEntry entry)
+    private ReportEntry performIsolatedRun(JvmLauncher launcher, TestRecord record, ReportEntry entry)
             throws MojoExecutionException {
-        log.info(String.format("Starting isolated run for %s", record.getTestDescription()));
-        File report = PluginUtil.ensureNew(new File(tempDir, "report.txt"));
-        Process process = launcher.launchScanFork(record.getTestClassName(), record.getTestMethodName(), report, quiet);
+        mojo.getLog().info(String.format("Starting isolated run for %s", record.getTestDescription()));
+        File report = PluginUtil.ensureNew(new File(mojo.getTemporaryDirectory(), "report.txt"));
+        launcher = launcher.appendArguments(report.getAbsolutePath(), record.getTestClassName(),
+                                            record.getTestMethodName());
+        Process process;
+        try {
+            process = launcher.launch();
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to launch test JVM", e);
+        }
         if (!waitForIsolatedRun(process)) {
-            log.info(String.format("> Isolated run for %s timed out", record.getTestDescription()));
+            mojo.getLog().info(String.format("> Isolated run for %s timed out", record.getTestDescription()));
             return entry.withIsolatedResult(TestResult.TIMED_OUT);
         }
         if (process.exitValue() != 0) {
-            log.info(String.format("> Isolated run for %s produced an error", record.getTestDescription()));
+            mojo.getLog().info(String.format("> Isolated run for %s produced an error", record.getTestDescription()));
             return entry.withIsolatedResult(TestResult.ERROR);
         }
-        log.info(String.format("> Finished isolated run for %s", record.getTestDescription()));
+        mojo.getLog().info(String.format("> Finished isolated run for %s", record.getTestDescription()));
         List<String> lines = PluginUtil.readLines(report);
         return entry.withGeneratorsStatus(GeneratorsStatus.valueOf(lines.get(0).trim()))
                     .withIsolatedResult(TestResult.valueOf(lines.get(1).trim()));
@@ -101,8 +116,8 @@ public class TestScanner {
 
     private boolean waitForIsolatedRun(Process process) {
         try {
-            if (timeout != null) {
-                return ProcessUtil.waitFor(process, timeout.toMillis(), TimeUnit.MILLISECONDS);
+            if (mojo.getTimeout() != 0) {
+                return ProcessUtil.waitFor(process, mojo.getTimeout(), TimeUnit.SECONDS);
             } else {
                 ProcessUtil.waitFor(process);
                 return true;
@@ -114,10 +129,10 @@ public class TestScanner {
     }
 
     private List<TestRecord> readRecords(File file) throws MojoExecutionException {
-        log.info("Reading initial Pomelo scan records");
+        mojo.getLog().info("Reading initial Pomelo scan records");
         try {
             List<TestRecord> records = TestRecord.readCsvRows(file);
-            log.info(String.format("> Read %d initial Pomelo scan records", records.size()));
+            mojo.getLog().info(String.format("> Read %d initial Pomelo scan records", records.size()));
             return records;
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to read initial Pomelo scan records", e);

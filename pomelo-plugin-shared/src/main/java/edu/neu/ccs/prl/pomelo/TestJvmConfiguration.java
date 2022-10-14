@@ -1,6 +1,9 @@
 package edu.neu.ccs.prl.pomelo;
 
 import edu.neu.ccs.prl.meringue.FileUtil;
+import edu.neu.ccs.prl.meringue.JvmLauncher;
+import edu.neu.ccs.prl.pomelo.scan.ScanForkMain;
+import edu.neu.ccs.prl.pomelo.util.SystemPropertyUtil;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.surefire.AbstractSurefireMojo;
 import org.apache.maven.plugin.surefire.JdkAttributes;
@@ -13,6 +16,7 @@ import org.apache.maven.surefire.shared.utils.cli.CommandLineUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.apache.maven.plugin.surefire.SurefireHelper.replaceForkThreadsInPath;
 import static org.apache.maven.plugin.surefire.SurefireHelper.replaceThreadNumberPlaceholders;
@@ -24,8 +28,8 @@ public class TestJvmConfiguration {
     private final Map<String, String> environment;
     private final String rawArgLine;
     private final File javaExecutable;
-    private final Classpath testClasspath;
     private final SurefireProperties rawSystemProperties;
+    private final List<File> testClasspathElements;
 
     public TestJvmConfiguration(boolean debug, boolean enableAssertions, File workingDirectory,
                                 Properties modelProperties, String argLine, Map<String, String> environmentVariables,
@@ -37,7 +41,9 @@ public class TestJvmConfiguration {
         this.rawSystemProperties = rawSystemProperties;
         this.rawArgLine = interpolatePropertyExpressions(argLine, modelProperties).replaceAll("\\s", " ");
         this.javaExecutable = jdkAttributes.getJvmExecutable();
-        this.testClasspath = testClasspath;
+        this.testClasspathElements = Collections.unmodifiableList(testClasspath.getClassPath().stream()
+                                                                               .map(File::new)
+                                                                               .collect(Collectors.toList()));
         this.environment =
                 Collections.unmodifiableMap(createEnvironment(environmentVariables, excludedEnvironmentVariables));
     }
@@ -59,24 +65,12 @@ public class TestJvmConfiguration {
         }
     }
 
-    public boolean isEnableAssertions() {
-        return enableAssertions;
-    }
-
     public File getJavaExecutable() {
         return javaExecutable;
     }
 
-    public Classpath getTestClasspath() {
-        return testClasspath;
-    }
-
-    public List<File> getTestClassPathElements() {
-        List<File> result = new ArrayList<>();
-        for (String s : testClasspath) {
-            result.add(new File(s));
-        }
-        return result;
+    public List<File> getTestClasspathElements() {
+        return testClasspathElements;
     }
 
     public Properties getSystemProperties(int forkNumber) {
@@ -99,6 +93,51 @@ public class TestJvmConfiguration {
         } catch (IOException e) {
             throw new MojoExecutionException("Cannot create workingDirectory " + cwd.getAbsolutePath(), e);
         }
+    }
+
+    public void buildManifestJar(File jar, Collection<File> additionalClasspathElements)
+            throws MojoExecutionException {
+        List<File> elements = new ArrayList<>(testClasspathElements);
+        elements.addAll(additionalClasspathElements);
+        try {
+            FileUtil.buildManifestJar(elements, jar);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to build test classpath manifest JAR", e);
+        }
+    }
+
+    public File writeSystemProperties(File temporaryDirectory,
+                                      int forkNumber) throws MojoExecutionException {
+        File file = new File(temporaryDirectory, "pomelo" + forkNumber + ".properties");
+        try {
+            PluginUtil.ensureNew(file);
+            SystemPropertyUtil.store(file, null, getSystemProperties(forkNumber));
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to write properties to file: " + file, e);
+        }
+        return file;
+    }
+
+    public JvmLauncher createLauncher(File temporaryDirectory,
+                                      int forkNumber,
+                                      Collection<File> additionalClasspathElements,
+                                      boolean verbose)
+            throws MojoExecutionException {
+        File manifestJar = new File(temporaryDirectory, "pomelo-test.jar");
+        buildManifestJar(manifestJar, additionalClasspathElements);
+        List<String> options = getJavaOptions(forkNumber);
+        if (debug) {
+            options.add(JvmLauncher.DEBUG_OPT + "5005");
+        }
+        options.add("-cp");
+        options.add(manifestJar.getAbsolutePath());
+        return JvmLauncher.fromMain(javaExecutable,
+                                    ScanForkMain.class.getName(),
+                                    options.toArray(new String[0]),
+                                    verbose || debug,
+                                    new String[0],
+                                    getWorkingDirectory(forkNumber),
+                                    environment);
     }
 
     private static String interpolatePropertyExpressions(String argLine, Properties modelProperties) {
@@ -125,12 +164,8 @@ public class TestJvmConfiguration {
             String value = entry.getValue();
             cli.addEnvironment(entry.getKey(), value == null ? "" : value);
         }
-        return convertEnvironment(cli.getEnvironmentVariables());
-    }
-
-    private static Map<String, String> convertEnvironment(String[] environment) {
         Map<String, String> map = new HashMap<>();
-        for (String entry : environment) {
+        for (String entry : cli.getEnvironmentVariables()) {
             int index = entry.indexOf('=');
             if (index != -1) {
                 map.put(entry.substring(0, index), entry.substring(index + 1));

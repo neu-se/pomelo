@@ -11,6 +11,6 @@ jobs:
           skip_tests: false
       - name: Scan examples
         run: |
-          mvn -f pomelo-examples install -Dpomelo.task=scan -Dpomelo.scan.report=pomelo-scan.csv
+          mvn -f pomelo-examples install -Dpomelo.task=scan -Dpomelo.report=pomelo-scan.csv
           cat pomelo-scan.csv
         shell: bash
