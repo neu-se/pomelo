@@ -45,7 +45,7 @@ public class SurefireScanningMojo extends SurefirePlugin {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        new TestScanner(this, timeout, errorHandler, temporaryDirectory, verbose, TestPluginType.SUREFIRE,
-                        mojoExecution, report, super::execute).scan();
+        new PomeloScanner(this, timeout, errorHandler, temporaryDirectory, verbose, TestPluginType.SUREFIRE,
+                          mojoExecution, report, super::execute).scan();
     }
 }

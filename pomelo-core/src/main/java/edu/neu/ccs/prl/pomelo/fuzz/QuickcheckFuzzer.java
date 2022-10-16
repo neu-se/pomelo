@@ -1,5 +1,6 @@
 package edu.neu.ccs.prl.pomelo.fuzz;
 
+import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 import org.junit.runners.model.MultipleFailureException;
 
@@ -21,4 +22,6 @@ public interface QuickcheckFuzzer {
     void handleTestAssumptionFailure(Throwable failure);
 
     SourceOfRandomness next();
+
+    GenerationStatus createGenerationStatus(SourceOfRandomness source);
 }

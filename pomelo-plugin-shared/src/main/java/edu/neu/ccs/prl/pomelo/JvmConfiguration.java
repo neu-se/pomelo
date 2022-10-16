@@ -3,7 +3,6 @@ package edu.neu.ccs.prl.pomelo;
 import edu.neu.ccs.prl.meringue.FileUtil;
 import edu.neu.ccs.prl.meringue.JvmLauncher;
 import edu.neu.ccs.prl.pomelo.scan.ScanForkMain;
-import edu.neu.ccs.prl.pomelo.util.SystemPropertyUtil;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.surefire.AbstractSurefireMojo;
 import org.apache.maven.plugin.surefire.JdkAttributes;
@@ -94,34 +93,16 @@ public class JvmConfiguration {
         }
     }
 
-    public File buildManifestJar(File temporaryDirectory, Collection<File> additionalClasspathElements)
-            throws MojoExecutionException {
-        File manifestJar = new File(temporaryDirectory, "pomelo-test.jar");
-        List<File> elements = new ArrayList<>(testClasspathElements);
-        elements.addAll(additionalClasspathElements);
-        try {
-            FileUtil.buildManifestJar(elements, manifestJar);
-            return manifestJar;
-        } catch (IOException e) {
-            throw new MojoExecutionException("Failed to build test classpath manifest JAR", e);
-        }
-    }
-
     public File writeSystemProperties(File temporaryDirectory, int forkNumber) throws MojoExecutionException {
         File file = new File(temporaryDirectory, "pomelo" + forkNumber + ".properties");
-        try {
-            PluginUtil.ensureNew(file);
-            SystemPropertyUtil.store(file, null, getSystemProperties(forkNumber));
-        } catch (IOException e) {
-            throw new MojoExecutionException("Failed to write properties to file: " + file, e);
-        }
+        PluginUtil.writeProperties(getSystemProperties(forkNumber), file);
         return file;
     }
 
-    public JvmLauncher createLauncher(File temporaryDirectory, int forkNumber,
-                                      Collection<File> additionalClasspathElements, boolean verbose)
+    public JvmLauncher createLauncher(File temporaryDirectory, int forkNumber, boolean verbose)
             throws MojoExecutionException {
-        File manifestJar = buildManifestJar(temporaryDirectory, additionalClasspathElements);
+        File manifestJar = new File(temporaryDirectory, "pomelo-test.jar");
+        PluginUtil.buildManifestJar(testClasspathElements, manifestJar);
         List<String> options = getJavaOptions(forkNumber);
         if (debug) {
             options.add(JvmLauncher.DEBUG_OPT + "5005");
@@ -129,7 +110,8 @@ public class JvmConfiguration {
         options.add("-cp");
         options.add(manifestJar.getAbsolutePath());
         return JvmLauncher.fromMain(javaExecutable, ScanForkMain.class.getName(), options.toArray(new String[0]),
-                                    verbose || debug, new String[0], getWorkingDirectory(forkNumber), environment);
+                                    verbose || debug, new String[0], getWorkingDirectory(forkNumber),
+                                    environment);
     }
 
     private static String interpolatePropertyExpressions(String argLine, Properties modelProperties) {

@@ -4,21 +4,22 @@ import edu.neu.ccs.prl.pomelo.util.FileUtil;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
+import java.util.Collection;
 import java.util.List;
+import java.util.Properties;
 
 public final class PluginUtil {
     private PluginUtil() {
         throw new AssertionError();
     }
 
-    public static File ensureEmptyDirectory(File dir) throws MojoExecutionException {
+    public static void ensureEmptyDirectory(File dir) throws MojoExecutionException {
         try {
             edu.neu.ccs.prl.meringue.FileUtil.ensureEmptyDirectory(dir);
-            return dir;
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to create empty directory: " + dir, e);
         }
@@ -68,14 +69,19 @@ public final class PluginUtil {
         }
     }
 
-    public static void setDeclaredField(Class<?> clazz, String name, Object obj, Object value)
-            throws MojoExecutionException {
+    public static void buildManifestJar(Collection<File> elements, File file) throws MojoExecutionException {
         try {
-            Field field = clazz.getDeclaredField(name);
-            field.setAccessible(true);
-            field.set(obj, value);
-        } catch (ReflectiveOperationException e) {
-            throw new MojoExecutionException("Failed to set field: " + name, e);
+            edu.neu.ccs.prl.meringue.FileUtil.buildManifestJar(elements, file);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to build manifest JAR", e);
+        }
+    }
+
+    public static void writeProperties(Properties properties, File file) throws MojoExecutionException {
+        try (FileOutputStream out = new FileOutputStream(file)) {
+            properties.store(out, null);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to write properties to file: " + file, e);
         }
     }
 }

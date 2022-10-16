@@ -46,7 +46,7 @@ public class FailsafeScanningMojo extends IntegrationTestMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        new TestScanner(this, timeout, errorHandler, temporaryDirectory, verbose, TestPluginType.FAILSAFE,
-                        mojoExecution, report, super::execute).scan();
+        new PomeloScanner(this, timeout, errorHandler, temporaryDirectory, verbose, TestPluginType.FAILSAFE,
+                          mojoExecution, report, super::execute).scan();
     }
 }

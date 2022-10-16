@@ -30,6 +30,10 @@
             <groupId>edu.neu.ccs.prl.meringue</groupId>
             <artifactId>meringue-maven-plugin</artifactId>
         </dependency>
+        <dependency>
+            <groupId>edu.neu.ccs.prl.pomelo</groupId>
+            <artifactId>pomelo-meringue-extension</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

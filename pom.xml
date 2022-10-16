@@ -34,6 +34,7 @@
         <module>pomelo-surefire-maven-plugin</module>
         <module>pomelo-failsafe-maven-plugin</module>
         <module>pomelo-maven-lifecycle</module>
+        <module>pomelo-meringue-extension</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -48,6 +49,11 @@
             <dependency>
                 <groupId>edu.neu.ccs.prl.pomelo</groupId>
                 <artifactId>pomelo-core</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>edu.neu.ccs.prl.pomelo</groupId>
+                <artifactId>pomelo-meringue-extension</artifactId>
                 <version>1.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>

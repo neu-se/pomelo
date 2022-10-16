@@ -9,12 +9,12 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 import org.junit.runners.model.MultipleFailureException;
 
-public class QuickcheckFuzzerAdapter implements ParameterSupplier, Fuzzer {
+public class FuzzerAdapter implements ParameterSupplier {
     private final QuickcheckFuzzer fuzzer;
     private final ArgumentsGenerator generator;
     private final RunListener listener;
 
-    public QuickcheckFuzzerAdapter(QuickcheckFuzzer fuzzer, Class<?> testClass, String testMethodName) {
+    public FuzzerAdapter(QuickcheckFuzzer fuzzer, Class<?> testClass, String testMethodName) {
         if (fuzzer == null) {
             throw new NullPointerException();
         }
@@ -32,7 +32,6 @@ public class QuickcheckFuzzerAdapter implements ParameterSupplier, Fuzzer {
         fuzzer.tearDown();
     }
 
-    @Override
     public RunListener getListener() {
         return listener;
     }
@@ -46,7 +45,7 @@ public class QuickcheckFuzzerAdapter implements ParameterSupplier, Fuzzer {
     public Object[] next() {
         try {
             SourceOfRandomness source = fuzzer.next();
-            Object[] arguments = generator.generate(source, new AttemptUnawareGenerationStatus(source));
+            Object[] arguments = generator.generate(source, fuzzer.createGenerationStatus(source));
             fuzzer.handleGenerateSuccess(arguments);
             return arguments;
         } catch (Throwable t) {

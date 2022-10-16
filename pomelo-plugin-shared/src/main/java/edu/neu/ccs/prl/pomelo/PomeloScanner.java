@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public class TestScanner {
+public class PomeloScanner {
     private final AbstractSurefireMojo mojo;
     private final AppendingWriter writer;
     private final DependencyResolver resolver;
@@ -26,9 +26,9 @@ public class TestScanner {
     private final MojoExecution mojoExecution;
     private final TestPluginType pluginType;
 
-    public TestScanner(AbstractSurefireMojo mojo, int timeout, ResolutionErrorHandler errorHandler,
-                       File temporaryDirectory, boolean verbose, TestPluginType pluginType, MojoExecution mojoExecution,
-                       File report, MojoExecutor executor) throws MojoExecutionException {
+    public PomeloScanner(AbstractSurefireMojo mojo, int timeout, ResolutionErrorHandler errorHandler,
+                         File temporaryDirectory, boolean verbose, TestPluginType pluginType, MojoExecution mojoExecution,
+                         File report, MojoExecutor executor) throws MojoExecutionException {
         this.mojo = mojo;
         this.timeout = timeout;
         this.executor = executor;
@@ -66,8 +66,8 @@ public class TestScanner {
 
     private JvmLauncher createLauncher() throws MojoExecutionException {
         JvmConfiguration config = new SurefireMojoWrapper(mojo).extractJvmConfiguration();
-        return config.createLauncher(temporaryDirectory, 0, Collections.emptyList(), verbose)
-                     .withArguments(config.writeSystemProperties(temporaryDirectory, 0).getAbsolutePath());
+        return config.createLauncher(temporaryDirectory, 1, verbose)
+                     .withArguments(config.writeSystemProperties(temporaryDirectory, 1).getAbsolutePath());
     }
 
     private void writeReportEntry(ReportEntry entry) throws MojoExecutionException {

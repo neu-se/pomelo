@@ -27,6 +27,10 @@
             <groupId>edu.neu.ccs.prl.pomelo</groupId>
             <artifactId>pomelo-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>edu.neu.ccs.prl.pomelo</groupId>
+            <artifactId>pomelo-meringue-extension</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

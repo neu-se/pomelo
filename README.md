@@ -68,7 +68,8 @@ Where:
 Pomelo's scan creates a CSV report with one row for each detected parameterized test.
 Each row has the following columns:
 
-- project_id: identifier (in the format groupId:artifactId:version) for the Maven project for which the test was run
+- project_id: identifier (in the format groupId:artifactId:packaging:version) for the Maven project for which the test
+  was run
 - plugin: the plugin that ran the test, one of the following:
     - SUREFIRE
     - FAILSAFE
@@ -113,12 +114,16 @@ Then, invoke maven as you would normally to run the test adding the following op
 -Dpomelo.testClass=<C> 
 -Dpomelo.testMethod=<M>
 [-Dpomelo.duration=<D>]
-[-Dpomelo.outputDir=<F>]
+[-Dpomelo.outputDirectory=<F>]
+[-Dpomelo.maxTraceSize=<Z>]
+[-Dpomelo.verbose]
+[-D-Dpomelo.debug]
+[-Dpomelo.timeout=\<Y\>]
 ```
 
 Where:
 
-* \<J\> is the identifier (in the format groupId:artifactId:version) of the Maven project whose test plugin
+* \<J\> is the identifier (in the format groupId:artifactId:packaging:version) of the Maven project whose test plugin
   configuration
   should be used.
 * \<P\> is the test plugin whose configuration should be either, either SUREFIRE or FAILSAFE.
@@ -128,7 +133,16 @@ Where:
 * \<D\> is the maximum amount of time to execute the fuzzing campaign for specified in the ISO-8601 duration format (
   e.g., 2 days, 3 hours, and 4 minutes is "P2DT3H4M"). The default value is one day.
 * \<F\> is the path of the directory to which the output files should be written.
-  The default value is ${project.build.directory}/pomelo.
+  The default value is ${project.build.directory}/pomelo/fuzz/out.
+* \<Z\> is the maximum number of frames to include in stack traces taken for failures. By default, a maximum of 5 frames
+  are included.
+* The presence of -Dpomelo.verbose indicates that the standard output and error of the
+  forked analysis JVMs should be redirected to the standard out and error of the Maven process. By default, the
+  standard output and error of forked analysis JVMs is discarded.
+* The presence of -Dpomelo.debug indicates that forked analysis JVMs should suspend and wait for a debugger to attach
+  on port 5005. By default, forked analysis JVMs do not suspend and wait for a debugger to attach.
+* \<Y\> is the maximum amount of time in seconds to execute a single input during analysis or -1 if no timeout should be
+  used. By default, a timeout value of 600 seconds is used.
 
 ## License
 

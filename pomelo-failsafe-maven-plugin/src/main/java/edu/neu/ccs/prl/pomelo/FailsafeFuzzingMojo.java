@@ -1,6 +1,7 @@
 package edu.neu.ccs.prl.pomelo;
 
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
+import org.apache.maven.artifact.resolver.ResolutionErrorHandler;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.failsafe.IntegrationTestMojo;
@@ -46,7 +47,7 @@ public class FailsafeFuzzingMojo extends IntegrationTestMojo {
     /**
      * Directory to which output files should be written.
      */
-    @Parameter(property = "pomelo.outputDirectory", defaultValue = "${project.build.directory}/pomelo/out")
+    @Parameter(property = "pomelo.outputDirectory", defaultValue = "${project.build.directory}/pomelo/fuzz/out")
     private File outputDirectory;
     /**
      * Maximum number of frames to include in stack traces taken for failures. By default, a maximum of {@code 5} frames
@@ -80,10 +81,15 @@ public class FailsafeFuzzingMojo extends IntegrationTestMojo {
     private ArtifactResolver artifactResolver;
     @Component
     private ArtifactHandlerManager artifactHandlerManager;
+    @Component
+    private ResolutionErrorHandler errorHandler;
 
     @Override
     public void execute() throws MojoExecutionException {
-        new TestFuzzer(this, testClass, testMethod, duration, outputDirectory, maxTraceSize, debug, timeout,
-                       verbose, temporaryDirectory, artifactResolver, artifactHandlerManager).execute();
+        new PomeloFuzzer(this, testClass, testMethod, duration, outputDirectory, temporaryDirectory,
+                         errorHandler).fuzz();
+        new PomeloAnalyzer(this, testClass, testMethod, duration, outputDirectory, maxTraceSize, debug, timeout,
+                           verbose, temporaryDirectory, artifactResolver, artifactHandlerManager,
+                           errorHandler).analyze();
     }
 }
