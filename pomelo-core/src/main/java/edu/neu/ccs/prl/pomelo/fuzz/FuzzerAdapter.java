@@ -7,7 +7,6 @@ import edu.neu.ccs.prl.pomelo.scan.TestMethod;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
-import org.junit.runners.model.MultipleFailureException;
 
 public class FuzzerAdapter implements ParameterSupplier {
     private final QuickcheckFuzzer fuzzer;
@@ -28,7 +27,7 @@ public class FuzzerAdapter implements ParameterSupplier {
         fuzzer.setUp();
     }
 
-    public void tearDown() throws MultipleFailureException {
+    public void tearDown() {
         fuzzer.tearDown();
     }
 
