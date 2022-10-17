@@ -67,7 +67,7 @@ public class SurefireFuzzingMojo extends SurefirePlugin {
     private long timeout;
     /**
      * True if the standard output and error of the forked analysis JVMs should be redirected to the standard out and
-     * error of the Maven process. Otherwise, the standard output and error of the forked analysis JVMs is discarded.
+     * error of the Maven process. By default, the standard output and error of the forked analysis JVMs is discarded.
      */
     @Parameter(property = "pomelo.verbose", defaultValue = "false")
     private boolean verbose;
@@ -76,6 +76,13 @@ public class SurefireFuzzingMojo extends SurefirePlugin {
      */
     @Parameter(defaultValue = "${project.build.directory}/pomelo/fuzz/temp", readonly = true, required = true)
     private File temporaryDirectory;
+    /**
+     * True if the standard output and error of the forked fuzzing campaign JVMs should be discarded. By default, the
+     * standard output and error of the forked fuzzing campaign JVMs is redirected to the standard out and error of the
+     * Maven process.
+     */
+    @Parameter(property = "pomelo.fuzz.quiet", defaultValue = "false")
+    private boolean quiet;
     @Component
     private ArtifactResolver artifactResolver;
     @Component
@@ -86,7 +93,7 @@ public class SurefireFuzzingMojo extends SurefirePlugin {
     @Override
     public void execute() throws MojoExecutionException {
         new PomeloFuzzer(this, testClass, testMethod, duration, outputDirectory, temporaryDirectory,
-                         errorHandler).fuzz();
+                         errorHandler, quiet).fuzz();
         new PomeloAnalyzer(this, testClass, testMethod, duration, outputDirectory, maxTraceSize, debug, timeout,
                            verbose, temporaryDirectory, artifactResolver, artifactHandlerManager,
                            errorHandler).analyze();

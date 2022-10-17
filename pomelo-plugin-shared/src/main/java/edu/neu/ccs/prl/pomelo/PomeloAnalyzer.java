@@ -34,7 +34,7 @@ public class PomeloAnalyzer {
         this.debug = debug;
         this.fuzzer =
                 new PomeloFuzzer(mojo, testClass, testMethod, duration, outputDirectory, temporaryDirectory,
-                                 errorHandler);
+                                 errorHandler, quiet);
         this.maxTraceSize = maxTraceSize;
         this.verbose = verbose;
         this.mojo = mojo;

@@ -24,7 +24,7 @@ public class PomeloFuzzer {
     private final Duration duration;
 
     PomeloFuzzer(AbstractSurefireMojo mojo, String testClass, String testMethod, String duration, File outputDirectory,
-                 File temporaryDirectory, ResolutionErrorHandler errorHandler) throws MojoExecutionException {
+                 File temporaryDirectory, ResolutionErrorHandler errorHandler, boolean quiet) throws MojoExecutionException {
         this.mojo = mojo;
         this.testClass = testClass;
         this.testMethod = testMethod;

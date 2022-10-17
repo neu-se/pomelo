@@ -77,6 +77,13 @@ public class FailsafeFuzzingMojo extends IntegrationTestMojo {
      */
     @Parameter(defaultValue = "${project.build.directory}/pomelo/fuzz/temp", readonly = true, required = true)
     private File temporaryDirectory;
+    /**
+     * True if the standard output and error of the forked fuzzing campaign JVMs should be discarded. By default, the
+     * standard output and error of the forked fuzzing campaign JVMs is redirected to the standard out and error of the
+     * Maven process.
+     */
+    @Parameter(property = "pomelo.fuzz.quiet", defaultValue = "false")
+    private boolean quiet;
     @Component
     private ArtifactResolver artifactResolver;
     @Component
@@ -87,7 +94,7 @@ public class FailsafeFuzzingMojo extends IntegrationTestMojo {
     @Override
     public void execute() throws MojoExecutionException {
         new PomeloFuzzer(this, testClass, testMethod, duration, outputDirectory, temporaryDirectory,
-                         errorHandler).fuzz();
+                         errorHandler, quiet).fuzz();
         new PomeloAnalyzer(this, testClass, testMethod, duration, outputDirectory, maxTraceSize, debug, timeout,
                            verbose, temporaryDirectory, artifactResolver, artifactHandlerManager,
                            errorHandler).analyze();
