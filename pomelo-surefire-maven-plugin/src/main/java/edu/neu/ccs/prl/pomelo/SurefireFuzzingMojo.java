@@ -14,7 +14,7 @@ import java.io.File;
 @Mojo(name = "fuzz-test", defaultPhase = LifecyclePhase.TEST, requiresDependencyResolution = ResolutionScope.TEST)
 public class SurefireFuzzingMojo extends SurefirePlugin {
     /**
-     * The Maven session.
+     * The current Maven session.
      */
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
     private MavenSession session;

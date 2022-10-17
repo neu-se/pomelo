@@ -15,7 +15,7 @@ import java.io.File;
         defaultPhase = LifecyclePhase.INTEGRATION_TEST)
 public class FailsafeFuzzingMojo extends IntegrationTestMojo {
     /**
-     * The Maven session.
+     * The current Maven session.
      */
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
     private MavenSession session;
