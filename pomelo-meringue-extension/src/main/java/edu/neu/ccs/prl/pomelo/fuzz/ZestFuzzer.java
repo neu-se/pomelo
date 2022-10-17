@@ -39,14 +39,11 @@ final class ZestFuzzer implements QuickcheckFuzzer {
     }
 
     @Override
-    public void tearDown() throws MultipleFailureException {
-        try {
-            if (!failures.isEmpty()) {
-                throw new MultipleFailureException(failures);
-            }
-        } finally {
-            TraceLogger.get().remove();
+    public void tearDown() {
+        if (!failures.isEmpty()) {
+            new MultipleFailureException(failures).printStackTrace();
         }
+        TraceLogger.get().remove();
     }
 
     @Override
