@@ -1,5 +1,6 @@
 package edu.neu.ccs.prl.pomelo;
 
+import edu.neu.ccs.prl.meringue.JacocoReportFormat;
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.artifact.resolver.ResolutionErrorHandler;
 import org.apache.maven.execution.MavenSession;
@@ -10,6 +11,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.transfer.artifact.resolve.ArtifactResolver;
 
 import java.io.File;
+import java.util.List;
 
 @Mojo(name = "fuzz-integration-test", requiresDependencyResolution = ResolutionScope.TEST,
         defaultPhase = LifecyclePhase.INTEGRATION_TEST)
@@ -84,6 +86,12 @@ public class FailsafeFuzzingMojo extends IntegrationTestMojo {
      */
     @Parameter(property = "pomelo.fuzz.quiet", defaultValue = "false")
     private boolean quiet;
+    /**
+     * List of JaCoCo report formats to be generated. Available values are {@code XML}, {@code HTML}, and {@code CSV}.
+     * By default, all formats are generated.
+     */
+    @Parameter(property = "pomelo.jacocoFormats", defaultValue = "HTML,CSV,XML")
+    private List<JacocoReportFormat> jacocoFormats;
     @Component
     private ArtifactResolver artifactResolver;
     @Component
@@ -97,6 +105,6 @@ public class FailsafeFuzzingMojo extends IntegrationTestMojo {
                          errorHandler, quiet).fuzz();
         new PomeloAnalyzer(this, testClass, testMethod, duration, outputDirectory, maxTraceSize, debug, timeout,
                            verbose, temporaryDirectory, artifactResolver, artifactHandlerManager,
-                           errorHandler).analyze();
+                           errorHandler, jacocoFormats).analyze();
     }
 }

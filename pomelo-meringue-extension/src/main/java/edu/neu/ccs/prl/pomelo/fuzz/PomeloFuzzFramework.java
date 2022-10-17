@@ -37,9 +37,11 @@ public class PomeloFuzzFramework implements FuzzFramework {
                 config.getTestClassPathJar().getAbsolutePath() + File.pathSeparator + frameworkJar.getAbsolutePath());
         String[] arguments =
                 new String[]{config.getTestClassName(), config.getTestMethodName(), outputDir.getAbsolutePath()};
+        boolean quiet = Boolean.parseBoolean(frameworkArguments.getProperty("quiet", "false"));
         launcher = JvmLauncher.fromMain(config.getJavaExec(), FuzzForkMain.class.getName(),
-                                        javaOptions.toArray(new String[0]), true, arguments, config.getWorkingDir(),
+                                        javaOptions.toArray(new String[0]), !quiet, arguments, config.getWorkingDir(),
                                         config.getEnvironment());
+
     }
 
     @Override
@@ -86,7 +88,7 @@ public class PomeloFuzzFramework implements FuzzFramework {
                               "org/javaruntype/,ognl", "org/hamcrest/,org/omg/", "org/netbeans/",
                               "edu/neu/ccs/prl/pomelo");
         List<String> includes = Arrays.asList("edu/berkeley/cs/jqf/examples", "java/text", "java/time", "sun/imageio",
-                                              "com/pholser/junit" + "/quickcheck/internal",
+                                              "com/pholser/junit/quickcheck/internal",
                                               "com/pholser/junit/quickcheck/generator");
         try (PrintWriter out = new PrintWriter(file)) {
             out.println("janala.excludes=" + String.join(",", excludes));

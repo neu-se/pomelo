@@ -19,18 +19,21 @@ public class PomeloFuzzer {
     private final String testMethod;
     private final File outputDirectory;
     private final File temporaryDirectory;
+    private final boolean quiet;
     private final JvmConfiguration configuration;
     private final DependencyResolver dependencyResolver;
     private final Duration duration;
 
     PomeloFuzzer(AbstractSurefireMojo mojo, String testClass, String testMethod, String duration, File outputDirectory,
-                 File temporaryDirectory, ResolutionErrorHandler errorHandler, boolean quiet) throws MojoExecutionException {
+                 File temporaryDirectory, ResolutionErrorHandler errorHandler, boolean quiet)
+            throws MojoExecutionException {
         this.mojo = mojo;
         this.testClass = testClass;
         this.testMethod = testMethod;
         this.duration = Duration.parse(duration);
         this.outputDirectory = outputDirectory;
         this.temporaryDirectory = temporaryDirectory;
+        this.quiet = quiet;
         this.dependencyResolver = new DependencyResolver(mojo.getRepositorySystem(), mojo.getLocalRepository(),
                                                          mojo.getRemoteRepositories(), errorHandler,
                                                          mojo.getSession().isOffline());
@@ -42,8 +45,9 @@ public class PomeloFuzzer {
         File campaignDirectory = new File(outputDirectory, "campaign");
         PluginUtil.ensureEmptyDirectory(campaignDirectory);
         Properties frameworkProperties = createFrameworkProperties();
-        new CampaignRunner(mojo.getLog(), duration).run(createCampaignConfiguration(campaignDirectory, true),
-                                                        PomeloFuzzFramework.class.getName(), frameworkProperties);
+        new CampaignRunner(mojo.getLog(), duration)
+                .run(createCampaignConfiguration(campaignDirectory, true),
+                     PomeloFuzzFramework.class.getName(), frameworkProperties);
     }
 
 
@@ -53,6 +57,7 @@ public class PomeloFuzzer {
                 mojo.getPluginArtifactMap().get("edu.neu.ccs.prl.pomelo:pomelo-meringue-extension")), jar);
         Properties properties = new Properties();
         properties.put("frameworkJar", jar.getAbsolutePath());
+        properties.put("quiet", quiet && !configuration.isDebug());
         return properties;
     }
 
@@ -68,7 +73,8 @@ public class PomeloFuzzer {
         }
         options.add("-Dpomelo.properties=" + file.getAbsolutePath());
         return new CampaignConfiguration(testClass, testMethod, duration, campaignDirectory, options, testClasspathJar,
-                                         configuration.getJavaExecutable(), configuration.getWorkingDirectory(1),
+                                         configuration.getJavaExecutable(),
+                                         configuration.getWorkingDirectory(1),
                                          configuration.getEnvironment());
     }
 

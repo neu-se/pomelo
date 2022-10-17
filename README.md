@@ -114,12 +114,13 @@ Then, invoke maven as you would normally to run the test adding the following op
 -Dpomelo.testClass=<C> 
 -Dpomelo.testMethod=<M>
 [-Dpomelo.duration=<D>]
-[-Dpomelo.outputDirectory=<F>]
+[-Dpomelo.outputDirectory=<O>]
 [-Dpomelo.maxTraceSize=<Z>]
 [-Dpomelo.verbose]
 [-D-Dpomelo.debug]
-[-Dpomelo.timeout=\<Y\>]
+[-Dpomelo.timeout=<Y>]
 [-Dpomelo.fuzz.quiet]
+[-Dpomelo.jacocoFormats=<F>]
 ```
 
 Where:
@@ -133,7 +134,7 @@ Where:
 * \<M\> is the name of the test method
 * \<D\> is the maximum amount of time to execute the fuzzing campaign for specified in the ISO-8601 duration format (
   e.g., 2 days, 3 hours, and 4 minutes is "P2DT3H4M"). The default value is one day.
-* \<F\> is the path of the directory to which the output files should be written.
+* \<O\> is the path of the directory to which the output files should be written.
   The default value is ${project.build.directory}/pomelo/fuzz/out.
 * \<Z\> is the maximum number of frames to include in stack traces taken for failures. By default, a maximum of 5 frames
   are included.
@@ -147,6 +148,8 @@ Where:
 * The presence of -Dpomelo.fuzz.quiet indicates that the standard output and error of the forked fuzzing campaign JVMs
   should be discarded. By default, the standard output and error of the forked fuzzing campaign JVMs is redirected to
   the standard out and error of the Maven process.
+* \<F\> is a list of JaCoCo report formats to be generated. The formats XML, HTML, CSV are supported. By default, all
+  formats are generated.
 
 ## License
 

@@ -2,6 +2,7 @@ package edu.neu.ccs.prl.pomelo;
 
 import edu.neu.ccs.prl.meringue.AnalysisRunner;
 import edu.neu.ccs.prl.meringue.CoverageFilter;
+import edu.neu.ccs.prl.meringue.JacocoReportFormat;
 import edu.neu.ccs.prl.meringue.SourcesResolver;
 import edu.neu.ccs.prl.pomelo.fuzz.PomeloFuzzFramework;
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
@@ -13,6 +14,7 @@ import org.apache.maven.shared.transfer.artifact.resolve.ArtifactResolver;
 import java.io.File;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 
 public class PomeloAnalyzer {
@@ -25,16 +27,19 @@ public class PomeloAnalyzer {
     private final int maxTraceSize;
     private final boolean verbose;
     private final boolean debug;
+    private final List<JacocoReportFormat> formats;
 
     PomeloAnalyzer(AbstractSurefireMojo mojo, String testClass, String testMethod, String duration,
                    File outputDirectory, int maxTraceSize, boolean debug, long timeout, boolean verbose,
                    File temporaryDirectory, ArtifactResolver artifactResolver,
-                   ArtifactHandlerManager artifactHandlerManager, ResolutionErrorHandler errorHandler)
+                   ArtifactHandlerManager artifactHandlerManager, ResolutionErrorHandler errorHandler,
+                   List<JacocoReportFormat> formats)
             throws MojoExecutionException {
         this.debug = debug;
+        this.formats = formats;
         this.fuzzer =
                 new PomeloFuzzer(mojo, testClass, testMethod, duration, outputDirectory, temporaryDirectory,
-                                 errorHandler, quiet);
+                                 errorHandler, true);
         this.maxTraceSize = maxTraceSize;
         this.verbose = verbose;
         this.mojo = mojo;
@@ -59,7 +64,8 @@ public class PomeloAnalyzer {
         new AnalysisRunner(sourcesResolver, mojo.getLog(), debug, verbose, timeout, maxTraceSize,
                            filter, outputDirectory, meringueDirectory, mojo.getProject(),
                            fuzzer.getConfiguration().getTestClasspathElements()).run(
-                fuzzer.createCampaignConfiguration(campaignDirectory, false), PomeloFuzzFramework.class.getName(),
-                frameworkProperties);
+                fuzzer.createCampaignConfiguration(campaignDirectory, false),
+                PomeloFuzzFramework.class.getName(),
+                frameworkProperties, formats);
     }
 }
