@@ -43,12 +43,9 @@ public final class FuzzForkMain {
         ParameterizedRunner runner = wrapper.createParameterizedRunner(fuzzer);
         RunNotifier notifier = new RunNotifier();
         notifier.addListener(fuzzer.getListener());
-        try {
-            fuzzer.setUp();
-            runner.run(notifier);
-        } finally {
-            fuzzer.tearDown();
-        }
+        fuzzer.setUp();
+        runner.run(notifier);
+        fuzzer.tearDown();
     }
 
     private static void loadSystemProperties() throws IOException {
