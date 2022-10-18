@@ -85,11 +85,11 @@ Each row has the following columns:
     - NONE: if the test was not run in isolation because it was ambiguous or originally failed
     - ERROR: if an error occurred while trying to run the test in isolation
     - TIMED_OUT: if the isolated test run timed out
-    - PASSED: if none of the test inputs failed due to reason other than a violated assumption
-    - FAILED: if any of the test inputs failed due to reason other than a violated assumption
+    - PASSED: if none of the original test inputs failed due to reason other than a violated assumption
+    - FAILED: if any of the original test inputs failed due to reason other than a violated assumption
 - generators_status: the availability of generators for the test's parameters' types, one of the following:
     - UNKNOWN: if the test was not run in isolation or an error occurred while trying to run the test in isolation
-    - MISSING: if a generator could not be found for any of test's parameters' types
+    - MISSING: if a generator could not be found for at least one of test's parameters' types
     - PRESENT: if a generator could be found for all of test's parameters' types
 
 If a parameterized test's isolated_result is PASSED and its generators_status is PRESENT, then Pomelo should be able to
