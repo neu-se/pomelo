@@ -30,9 +30,7 @@
     </scm>
     <modules>
         <module>pomelo-core</module>
-        <module>pomelo-plugin-shared</module>
-        <module>pomelo-surefire-maven-plugin</module>
-        <module>pomelo-failsafe-maven-plugin</module>
+        <module>pomelo-maven-plugin</module>
         <module>pomelo-maven-lifecycle</module>
         <module>pomelo-meringue-extension</module>
     </modules>

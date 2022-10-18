@@ -24,7 +24,7 @@ There are four ways you can add the Pomelo extension to your Maven build
        ...
    </build>
    ```
-3. For Maven version 3.0.2+, -Dmaven.ext.class.path=[path to pomelo-maven-lifecycle JAR]
+3. For Maven version 3.0.2+, add the option -Dmaven.ext.class.path=[path to pomelo-maven-lifecycle JAR] to your Maven command
 4. For Maven version 3.3.1+, configure your extension in ${maven.projectBasedir}/.mvn/extensions.xml
    ```
    <extensions xmlns="https://maven.apache.org/EXTENSIONS/1.0.0" xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"

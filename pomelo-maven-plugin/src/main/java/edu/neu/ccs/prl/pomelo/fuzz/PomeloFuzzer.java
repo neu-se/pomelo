@@ -1,9 +1,12 @@
-package edu.neu.ccs.prl.pomelo;
+package edu.neu.ccs.prl.pomelo.fuzz;
 
 import edu.neu.ccs.prl.meringue.CampaignConfiguration;
 import edu.neu.ccs.prl.meringue.CampaignRunner;
 import edu.neu.ccs.prl.meringue.JvmLauncher;
-import edu.neu.ccs.prl.pomelo.fuzz.PomeloFuzzFramework;
+import edu.neu.ccs.prl.pomelo.DependencyResolver;
+import edu.neu.ccs.prl.pomelo.JvmConfiguration;
+import edu.neu.ccs.prl.pomelo.PluginUtil;
+import edu.neu.ccs.prl.pomelo.SurefireMojoWrapper;
 import org.apache.maven.artifact.resolver.ResolutionErrorHandler;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.surefire.AbstractSurefireMojo;
@@ -45,11 +48,9 @@ public class PomeloFuzzer {
         File campaignDirectory = new File(outputDirectory, "campaign");
         PluginUtil.ensureEmptyDirectory(campaignDirectory);
         Properties frameworkProperties = createFrameworkProperties();
-        new CampaignRunner(mojo.getLog(), duration)
-                .run(createCampaignConfiguration(campaignDirectory, true),
-                     PomeloFuzzFramework.class.getName(), frameworkProperties);
+        new CampaignRunner(mojo.getLog(), duration).run(createCampaignConfiguration(campaignDirectory, true),
+                                                        PomeloFuzzFramework.class.getName(), frameworkProperties);
     }
-
 
     Properties createFrameworkProperties() throws MojoExecutionException {
         File jar = new File(temporaryDirectory, "framework.jar");
@@ -73,8 +74,7 @@ public class PomeloFuzzer {
         }
         options.add("-Dpomelo.properties=" + file.getAbsolutePath());
         return new CampaignConfiguration(testClass, testMethod, duration, campaignDirectory, options, testClasspathJar,
-                                         configuration.getJavaExecutable(),
-                                         configuration.getWorkingDirectory(1),
+                                         configuration.getJavaExecutable(), configuration.getWorkingDirectory(1),
                                          configuration.getEnvironment());
     }
 

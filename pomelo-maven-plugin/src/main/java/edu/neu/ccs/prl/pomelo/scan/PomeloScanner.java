@@ -1,8 +1,11 @@
-package edu.neu.ccs.prl.pomelo;
+package edu.neu.ccs.prl.pomelo.scan;
 
 import edu.neu.ccs.prl.meringue.JvmLauncher;
 import edu.neu.ccs.prl.meringue.ProcessUtil;
-import edu.neu.ccs.prl.pomelo.scan.*;
+import edu.neu.ccs.prl.pomelo.DependencyResolver;
+import edu.neu.ccs.prl.pomelo.JvmConfiguration;
+import edu.neu.ccs.prl.pomelo.PluginUtil;
+import edu.neu.ccs.prl.pomelo.SurefireMojoWrapper;
 import edu.neu.ccs.prl.pomelo.util.AppendingWriter;
 import org.apache.maven.artifact.resolver.ResolutionErrorHandler;
 import org.apache.maven.plugin.MojoExecution;
@@ -12,7 +15,10 @@ import org.apache.maven.plugin.surefire.AbstractSurefireMojo;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 public class PomeloScanner {
@@ -27,8 +33,9 @@ public class PomeloScanner {
     private final TestPluginType pluginType;
 
     public PomeloScanner(AbstractSurefireMojo mojo, int timeout, ResolutionErrorHandler errorHandler,
-                         File temporaryDirectory, boolean verbose, TestPluginType pluginType, MojoExecution mojoExecution,
-                         File report, MojoExecutor executor) throws MojoExecutionException {
+                         File temporaryDirectory, boolean verbose, TestPluginType pluginType,
+                         MojoExecution mojoExecution, File report, MojoExecutor executor)
+            throws MojoExecutionException {
         this.mojo = mojo;
         this.timeout = timeout;
         this.executor = executor;

@@ -1,6 +1,5 @@
-package edu.neu.ccs.prl.pomelo;
+package edu.neu.ccs.prl.pomelo.scan;
 
-import edu.neu.ccs.prl.pomelo.scan.TestPluginType;
 import org.apache.maven.artifact.resolver.ResolutionErrorHandler;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;

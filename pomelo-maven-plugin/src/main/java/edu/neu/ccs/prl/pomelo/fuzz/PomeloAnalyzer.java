@@ -1,10 +1,10 @@
-package edu.neu.ccs.prl.pomelo;
+package edu.neu.ccs.prl.pomelo.fuzz;
 
 import edu.neu.ccs.prl.meringue.AnalysisRunner;
 import edu.neu.ccs.prl.meringue.CoverageFilter;
 import edu.neu.ccs.prl.meringue.JacocoReportFormat;
 import edu.neu.ccs.prl.meringue.SourcesResolver;
-import edu.neu.ccs.prl.pomelo.fuzz.PomeloFuzzFramework;
+import edu.neu.ccs.prl.pomelo.PluginUtil;
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.artifact.resolver.ResolutionErrorHandler;
 import org.apache.maven.plugin.MojoExecutionException;

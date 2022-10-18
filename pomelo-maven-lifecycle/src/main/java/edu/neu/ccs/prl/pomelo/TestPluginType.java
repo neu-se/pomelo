@@ -8,20 +8,19 @@ import org.apache.maven.model.PluginExecution;
 import java.util.*;
 
 public enum TestPluginType {
-    SUREFIRE("maven-surefire-plugin", "pomelo-surefire-maven-plugin", "surefire", "test"),
-    FAILSAFE("maven-failsafe-plugin", "pomelo-failsafe-maven-plugin", "failsafe", "integration-test");
+    SUREFIRE("maven-surefire-plugin", "surefire", "test"),
+    FAILSAFE("maven-failsafe-plugin", "failsafe", "integration-test");
     private static final String POMELO_VERSION = "1.0.0-SNAPSHOT";
     private static final String MAVEN_PLUGINS_GROUP_ID = "org.apache.maven.plugins";
     private static final String POMELO_PLUGINS_GROUP_ID = "edu.neu.ccs.prl.pomelo";
+    private static final String POMELO_PLUGIN_ARTIFACT_ID = "pomelo-maven-plugin";
 
     private final String mavenArtifactId;
-    private final String pomeloArtifactId;
     private final String pluginPrefix;
     private final Set<String> supportedGoals;
 
-    TestPluginType(String mavenArtifactId, String pomeloArtifactId, String pluginPrefix, String... supportedGoals) {
+    TestPluginType(String mavenArtifactId, String pluginPrefix, String... supportedGoals) {
         this.mavenArtifactId = mavenArtifactId;
-        this.pomeloArtifactId = pomeloArtifactId;
         this.pluginPrefix = pluginPrefix;
         this.supportedGoals = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(supportedGoals)));
     }
@@ -51,7 +50,7 @@ public enum TestPluginType {
         for (TestPluginType type : values()) {
             if (type.matches(plugin)) {
                 plugin.setGroupId(POMELO_PLUGINS_GROUP_ID);
-                plugin.setArtifactId(type.pomeloArtifactId);
+                plugin.setArtifactId(POMELO_PLUGIN_ARTIFACT_ID);
                 plugin.setVersion(POMELO_VERSION);
                 return;
             }
@@ -76,10 +75,10 @@ public enum TestPluginType {
         }
     }
 
-    private static String createGoalString(TestPluginType type, String goal, String executionId, PomeloTask phase) {
+    private static String createGoalString(String goal, String executionId, PomeloTask phase) {
         String newGoal = String.format("%s-%s", phase.name().toLowerCase(), goal);
-        String s =
-                String.format("%s:%s:%s:%s", POMELO_PLUGINS_GROUP_ID, type.pomeloArtifactId, POMELO_VERSION, newGoal);
+        String s = String.format("%s:%s:%s:%s", POMELO_PLUGINS_GROUP_ID, POMELO_PLUGIN_ARTIFACT_ID, POMELO_VERSION,
+                                 newGoal);
         return executionId == null ? s : s + "@" + executionId;
     }
 
@@ -130,7 +129,7 @@ public enum TestPluginType {
         if (type == null) {
             return pluginGoal;
         }
-        return type.supportedGoals.contains(goal) ? createGoalString(type, goal, executionId, phase) : null;
+        return type.supportedGoals.contains(goal) ? createGoalString(goal, executionId, phase) : null;
     }
 
     public static void replaceGoals(MavenSession session, PomeloTask phase) {

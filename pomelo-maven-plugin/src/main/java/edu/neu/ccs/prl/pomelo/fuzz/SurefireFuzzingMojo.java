@@ -1,11 +1,11 @@
-package edu.neu.ccs.prl.pomelo;
+package edu.neu.ccs.prl.pomelo.fuzz;
 
 import edu.neu.ccs.prl.meringue.JacocoReportFormat;
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.artifact.resolver.ResolutionErrorHandler;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.failsafe.IntegrationTestMojo;
+import org.apache.maven.plugin.surefire.SurefirePlugin;
 import org.apache.maven.plugins.annotations.*;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.transfer.artifact.resolve.ArtifactResolver;
@@ -13,9 +13,8 @@ import org.apache.maven.shared.transfer.artifact.resolve.ArtifactResolver;
 import java.io.File;
 import java.util.List;
 
-@Mojo(name = "fuzz-integration-test", requiresDependencyResolution = ResolutionScope.TEST,
-        defaultPhase = LifecyclePhase.INTEGRATION_TEST)
-public class FailsafeFuzzingMojo extends IntegrationTestMojo {
+@Mojo(name = "fuzz-test", defaultPhase = LifecyclePhase.TEST, requiresDependencyResolution = ResolutionScope.TEST)
+public class SurefireFuzzingMojo extends SurefirePlugin {
     /**
      * The current Maven session.
      */
@@ -70,7 +69,7 @@ public class FailsafeFuzzingMojo extends IntegrationTestMojo {
     private long timeout;
     /**
      * True if the standard output and error of the forked analysis JVMs should be redirected to the standard out and
-     * error of the Maven process. Otherwise, the standard output and error of the forked analysis JVMs is discarded.
+     * error of the Maven process. By default, the standard output and error of the forked analysis JVMs is discarded.
      */
     @Parameter(property = "pomelo.verbose", defaultValue = "false")
     private boolean verbose;
