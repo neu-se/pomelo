@@ -2,6 +2,7 @@ package edu.neu.ccs.prl.pomelo.param;
 
 import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
 import edu.neu.ccs.prl.pomelo.fuzz.ArgumentsGenerator;
+import edu.neu.ccs.prl.pomelo.fuzz.Fuzzer;
 import org.junit.runner.RunWith;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.Parameterized;
@@ -31,7 +32,7 @@ public final class JUnit4ParameterizedWrapper implements ParameterizedTestWrappe
     }
 
     @Override
-    public ParameterizedRunner createParameterizedRunner(ParameterSupplier supplier) throws Throwable {
+    public ParameterizedRunner createParameterizedRunner(Fuzzer supplier) throws Throwable {
         return new Runner(testClass, testMethodName, supplier);
     }
 
@@ -84,10 +85,10 @@ public final class JUnit4ParameterizedWrapper implements ParameterizedTestWrappe
     }
 
     private static class Runner extends Parameterized implements ParameterizedRunner {
-        private final ParameterSupplier supplier;
+        private final Fuzzer supplier;
         private final FrameworkMethod method;
 
-        private Runner(Class<?> clazz, String methodName, ParameterSupplier supplier) throws Throwable {
+        private Runner(Class<?> clazz, String methodName, Fuzzer supplier) throws Throwable {
             super(clazz);
             if (supplier == null) {
                 throw new NullPointerException();

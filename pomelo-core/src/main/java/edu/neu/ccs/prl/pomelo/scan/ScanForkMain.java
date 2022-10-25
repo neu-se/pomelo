@@ -2,6 +2,7 @@ package edu.neu.ccs.prl.pomelo.scan;
 
 import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
 import edu.neu.ccs.prl.pomelo.fuzz.ArgumentsGenerator;
+import edu.neu.ccs.prl.pomelo.fuzz.Fuzzer;
 import edu.neu.ccs.prl.pomelo.param.*;
 import edu.neu.ccs.prl.pomelo.util.SystemPropertyUtil;
 import org.junit.runner.Description;
@@ -24,7 +25,7 @@ public final class ScanForkMain {
         SystemPropertyUtil.load(new File(args[0]));
         Class<?> testClass = Class.forName(args[2], true, ScanForkMain.class.getClassLoader());
         String testMethodName = args[3];
-        ParameterizedTestWrapper wrapper = ParameterizedTestType.wrap(new TestMethod(testClass, testMethodName));
+        ParameterizedTestWrapper wrapper = ParameterizedTestType.findAndWrap(new TestMethod(testClass, testMethodName));
         File report = new File(args[1]);
         GeneratorsStatus status = checkGeneratorStatus(wrapper);
         TestResult result = getTestResult(testClass, testMethodName, wrapper);
@@ -46,7 +47,7 @@ public final class ScanForkMain {
     private static TestResult getTestResult(Class<?> testClass, String testMethodName,
                                             ParameterizedTestWrapper wrapper) {
         try {
-            ParameterSupplier supplier = new ListParameterSupplier(wrapper.getOriginalParameterGroups());
+            Fuzzer supplier = new FixedListFuzzer(wrapper.getOriginalParameterGroups());
             ParameterizedRunner runner = wrapper.createParameterizedRunner(supplier);
             RunNotifier notifier = new RunNotifier();
             IsolatedScanRunListener listener = new IsolatedScanRunListener(testClass, testMethodName);

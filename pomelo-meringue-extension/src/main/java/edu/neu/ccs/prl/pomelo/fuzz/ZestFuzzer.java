@@ -14,9 +14,7 @@ import org.junit.runners.model.MultipleFailureException;
 import java.io.EOFException;
 import java.util.*;
 
-import static edu.berkeley.cs.jqf.fuzz.guidance.Result.*;
-
-final class ZestFuzzer implements QuickcheckFuzzer {
+final class ZestFuzzer extends QuickcheckFuzzer {
     private final Guidance guidance;
     private final List<Throwable> failures = new LinkedList<>();
     private final Set<List<StackTraceElement>> traces = new HashSet<>();
@@ -24,6 +22,7 @@ final class ZestFuzzer implements QuickcheckFuzzer {
     private final String testMethodName;
 
     public ZestFuzzer(Class<?> testClass, String testMethodName, Guidance guidance) {
+        super(testClass, testMethodName);
         if (testClass == null || testMethodName == null || guidance == null) {
             throw new NullPointerException();
         }
@@ -54,13 +53,12 @@ final class ZestFuzzer implements QuickcheckFuzzer {
     @Override
     public void handleGenerateFailure(Throwable failure) {
         if (failure instanceof IllegalStateException && failure.getCause() instanceof EOFException) {
-            guidance.handleResult(INVALID,
+            guidance.handleResult(Result.INVALID,
                                   new AssumptionViolatedException("StreamBackedRandom does not have enough data",
                                                                   failure.getCause()));
         }
         handleTestFailure(failure);
     }
-
 
     @Override
     public void handleGenerateSuccess(Object[] arguments) {
@@ -68,31 +66,17 @@ final class ZestFuzzer implements QuickcheckFuzzer {
     }
 
     @Override
-    public void handleTestSuccess() {
-        guidance.handleResult(SUCCESS, null);
-    }
-
-    @Override
-    public void handleTestFailure(Throwable failure) {
-        if (failure instanceof InstrumentationException) {
-            throw new GuidanceException(failure);
-        } else if (failure instanceof GuidanceException) {
-            throw (GuidanceException) failure;
-        } else if (failure instanceof TimeoutException) {
-            guidance.handleResult(TIMEOUT, failure);
-        } else if (failure instanceof AssumptionViolatedException) {
-            guidance.handleResult(INVALID, failure);
-        } else {
-            if (traces.add(Arrays.asList(failure.getStackTrace()))) {
-                failures.add(failure);
-            }
-            guidance.handleResult(FAILURE, failure);
+    public void handleResult(TestExecutionResult result) {
+        switch (result.getStatus()) {
+            case SUCCESSFUL:
+                guidance.handleResult(Result.SUCCESS, null);
+                return;
+            case ASSUMPTION_FAILURE:
+                guidance.handleResult(Result.INVALID, result.getFailure());
+                return;
+            case FAILED:
+                handleTestFailure(result.getFailure());
         }
-    }
-
-    @Override
-    public void handleTestAssumptionFailure(Throwable failure) {
-        guidance.handleResult(Result.INVALID, failure);
     }
 
     @Override
@@ -103,5 +87,22 @@ final class ZestFuzzer implements QuickcheckFuzzer {
     @Override
     public GenerationStatus createGenerationStatus(SourceOfRandomness source) {
         return new NonTrackingGenerationStatus(source);
+    }
+
+    private void handleTestFailure(Throwable failure) {
+        if (failure instanceof InstrumentationException) {
+            throw new GuidanceException(failure);
+        } else if (failure instanceof GuidanceException) {
+            throw (GuidanceException) failure;
+        } else if (failure instanceof TimeoutException) {
+            guidance.handleResult(Result.TIMEOUT, failure);
+        } else if (failure instanceof AssumptionViolatedException) {
+            guidance.handleResult(Result.INVALID, failure);
+        } else {
+            if (traces.add(Arrays.asList(failure.getStackTrace()))) {
+                failures.add(failure);
+            }
+            guidance.handleResult(Result.FAILURE, failure);
+        }
     }
 }

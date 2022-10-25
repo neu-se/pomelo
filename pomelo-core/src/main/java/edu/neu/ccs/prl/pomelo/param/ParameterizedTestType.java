@@ -5,7 +5,7 @@ import edu.neu.ccs.prl.pomelo.scan.TestMethod;
 public enum ParameterizedTestType {
     JUNIT4_PARAMETERIZED() {
         @Override
-        public boolean matches(Class<?> clazz) {
+        public boolean matches(Class<?> clazz, String methodName) {
             return JUnit4ParameterizedWrapper.isType(clazz);
         }
 
@@ -15,7 +15,7 @@ public enum ParameterizedTestType {
         }
     }, JUNIT_PARAMS() {
         @Override
-        public boolean matches(Class<?> clazz) {
+        public boolean matches(Class<?> clazz, String methodName) {
             return JUnitParamsWrapper.isType(clazz);
         }
 
@@ -25,25 +25,34 @@ public enum ParameterizedTestType {
         }
     };
 
-    public abstract boolean matches(Class<?> clazz);
+    public abstract boolean matches(Class<?> clazz, String methodName);
 
     public abstract ParameterizedTestWrapper wrap(Class<?> clazz, String methodName);
 
-    public static boolean isParameterized(TestMethod method) {
+    public static ParameterizedTestType findType(Class<?> clazz, String methodName) {
         for (ParameterizedTestType type : values()) {
-            if (type.matches(method.getTestClass())) {
-                return true;
+            if (type.matches(clazz, methodName)) {
+                return type;
             }
         }
-        return false;
+        return null;
     }
 
-    public static ParameterizedTestWrapper wrap(TestMethod method) {
-        for (ParameterizedTestType type : values()) {
-            if (type.matches(method.getTestClass())) {
-                return type.wrap(method.getTestClass(), method.getTestMethodName());
-            }
+    public static boolean isParameterized(TestMethod method) {
+        return findType(method.getTestClass(), method.getTestMethodName()) != null;
+    }
+
+    public static ParameterizedTestWrapper findAndWrap(TestMethod method) {
+        return findAndWrap(method.getTestClass(), method.getTestMethodName());
+    }
+
+    public static ParameterizedTestWrapper findAndWrap(Class<?> testClass, String testMethodName) {
+        ParameterizedTestType type = findType(testClass, testMethodName);
+        if (type == null) {
+            throw new IllegalArgumentException(
+                    String.format("%s#%s is not a parameterized test", testClass, testMethodName));
+        } else {
+            return type.wrap(testClass, testMethodName);
         }
-        throw new IllegalArgumentException(method + " is not a parameterized test");
     }
 }

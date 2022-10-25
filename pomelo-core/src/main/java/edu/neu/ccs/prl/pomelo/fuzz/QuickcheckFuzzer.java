@@ -2,25 +2,56 @@ package edu.neu.ccs.prl.pomelo.fuzz;
 
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
+import edu.neu.ccs.prl.pomelo.param.ParameterizedTestType;
 
-public interface QuickcheckFuzzer {
-    void setUp();
+public abstract class QuickcheckFuzzer implements Fuzzer {
+    private final ArgumentsGenerator generator;
 
-    void tearDown();
+    public QuickcheckFuzzer(Class<?> testClass, String testMethodName) {
+        this.generator = new ArgumentsGenerator(ParameterizedTestType.findAndWrap(testClass, testMethodName)
+                                                                     .getParameterTypeContexts());
+    }
 
-    boolean hasNext();
+    abstract void setUp();
 
-    void handleGenerateFailure(Throwable failure);
+    abstract void tearDown();
 
-    void handleGenerateSuccess(Object[] arguments);
+    abstract boolean hasNext();
 
-    void handleTestSuccess();
+    abstract void handleGenerateFailure(Throwable failure);
 
-    void handleTestFailure(Throwable failure);
+    abstract void handleGenerateSuccess(Object[] arguments);
 
-    void handleTestAssumptionFailure(Throwable failure);
+    abstract void handleResult(TestExecutionResult result);
 
-    SourceOfRandomness next();
+    abstract SourceOfRandomness next();
 
-    GenerationStatus createGenerationStatus(SourceOfRandomness source);
+    abstract GenerationStatus createGenerationStatus(SourceOfRandomness source);
+
+    @Override
+    public void accept(StructuredFuzzTarget target) throws Throwable {
+        setUp();
+        try {
+            while (hasNext()) {
+                Object[] arguments = generateNext();
+                if (arguments != null) {
+                    handleResult(target.run(arguments));
+                }
+            }
+        } finally {
+            tearDown();
+        }
+    }
+
+    private Object[] generateNext() {
+        try {
+            SourceOfRandomness source = next();
+            Object[] arguments = generator.generate(source, createGenerationStatus(source));
+            handleGenerateSuccess(arguments);
+            return arguments;
+        } catch (Throwable t) {
+            handleGenerateFailure(t);
+            return null;
+        }
+    }
 }

@@ -2,10 +2,7 @@ package edu.neu.ccs.prl.pomelo.fuzz;
 
 import edu.berkeley.cs.jqf.fuzz.ei.ZestGuidance;
 import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
-import edu.neu.ccs.prl.pomelo.param.ParameterizedRunner;
 import edu.neu.ccs.prl.pomelo.param.ParameterizedTestType;
-import edu.neu.ccs.prl.pomelo.param.ParameterizedTestWrapper;
-import edu.neu.ccs.prl.pomelo.scan.TestMethod;
 import edu.neu.ccs.prl.pomelo.util.SystemPropertyUtil;
 import org.junit.runner.notification.RunNotifier;
 
@@ -37,15 +34,10 @@ public final class FuzzForkMain {
         // Note: must set system properties before loading the test class
         loadSystemProperties();
         Class<?> testClass = Class.forName(testClassName, true, classLoader);
-        ParameterizedTestWrapper wrapper = ParameterizedTestType.wrap(new TestMethod(testClass, testMethodName));
-        FuzzerAdapter fuzzer =
-                new FuzzerAdapter(new ZestFuzzer(testClass, testMethodName, guidance), testClass, testMethodName);
-        ParameterizedRunner runner = wrapper.createParameterizedRunner(fuzzer);
-        RunNotifier notifier = new RunNotifier();
-        notifier.addListener(fuzzer.getListener());
-        fuzzer.setUp();
-        runner.run(notifier);
-        fuzzer.tearDown();
+        Fuzzer fuzzer = new ZestFuzzer(testClass, testMethodName, guidance);
+        ParameterizedTestType.findAndWrap(testClass, testMethodName)
+                             .createParameterizedRunner(fuzzer)
+                             .run(new RunNotifier());
     }
 
     private static void loadSystemProperties() throws IOException {

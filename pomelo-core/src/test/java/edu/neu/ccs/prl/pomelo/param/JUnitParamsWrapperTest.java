@@ -31,7 +31,7 @@ public class JUnitParamsWrapperTest {
         JUnitParamsExample.values.clear();
         List<Object[]> parameterGroups = Arrays.asList(new Object[]{77, true}, new Object[]{-9, false});
         JUnitParamsWrapper test = new JUnitParamsWrapper(JUnitParamsExample.class, "test1");
-        ParameterizedRunner runner = test.createParameterizedRunner(new ListParameterSupplier(parameterGroups));
+        ParameterizedRunner runner = test.createParameterizedRunner(new FixedListFuzzer(parameterGroups));
         runner.run(new RunNotifier());
         Assert.assertEquals(expected, JUnitParamsExample.values);
     }
