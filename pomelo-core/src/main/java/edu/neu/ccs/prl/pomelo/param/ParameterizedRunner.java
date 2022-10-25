@@ -7,7 +7,7 @@ import org.junit.runners.model.Statement;
 public interface ParameterizedRunner {
     void run(RunNotifier notifier);
 
-    void runWithParameterGroup(RunNotifier notifier, Object[] parameterGroup) throws InitializationError;
+    void runWithGroup(RunNotifier notifier, Object[] group) throws InitializationError;
 
     default Statement createStatement(RunNotifier notifier, ParameterSupplier supplier) {
         return new Statement() {
@@ -16,7 +16,7 @@ public interface ParameterizedRunner {
                 while (supplier.hasNext()) {
                     Object[] group = supplier.next();
                     if (group != null) {
-                        runWithParameterGroup(notifier, group);
+                        runWithGroup(notifier, group);
                     }
                 }
             }

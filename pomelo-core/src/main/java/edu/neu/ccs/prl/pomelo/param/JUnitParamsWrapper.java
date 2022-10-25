@@ -112,9 +112,9 @@ public final class JUnitParamsWrapper implements ParameterizedTestWrapper {
         }
 
         @Override
-        public void runWithParameterGroup(RunNotifier notifier, Object[] parameterGroup) {
+        public void runWithGroup(RunNotifier notifier, Object[] group) {
             Description description = describeChild(method);
-            this.parameterGroup = parameterGroup;
+            this.parameterGroup = group;
             Statement statement = new Statement() {
                 @Override
                 public void evaluate() throws Throwable {

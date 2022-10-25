@@ -102,9 +102,9 @@ public final class JUnit4ParameterizedWrapper implements ParameterizedTestWrappe
         }
 
         @Override
-        public void runWithParameterGroup(RunNotifier notifier, Object[] parameterGroup) throws InitializationError {
+        public void runWithGroup(RunNotifier notifier, Object[] group) throws InitializationError {
             new BlockJUnit4ClassRunnerWithParameters(
-                    new TestWithParameters("[0]", getTestClass(), Arrays.asList(parameterGroup))) {
+                    new TestWithParameters("[0]", getTestClass(), Arrays.asList(group))) {
                 @Override
                 protected void runChild(FrameworkMethod method, RunNotifier notifier) {
                     if (method.equals(Runner.this.method)) {

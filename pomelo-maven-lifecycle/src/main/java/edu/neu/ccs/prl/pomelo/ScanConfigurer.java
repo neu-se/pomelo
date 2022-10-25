@@ -15,11 +15,11 @@ import static edu.neu.ccs.prl.pomelo.PomeloLifecycleParticipant.*;
 public final class ScanConfigurer {
     public void configure(MavenSession session) throws MavenExecutionException {
         initializeScanReport(session);
-        TestPluginType.replaceGoals(session, PomeloTask.SCAN);
+        replaceGoals(session, PomeloTask.SCAN);
         addArtifactRepositories(session);
-        getAllTestPlugins(session).forEach(TestPluginType::removeUnsupportedGoals);
+        getAllTestPlugins(session).forEach(PomeloLifecycleParticipant::removeUnsupportedGoals);
         reconfigureTestPluginExecutions(session, (e) -> prefixGoals(e, "scan-"));
-        getAllTestPlugins(session).forEach(TestPluginType::replace);
+        getAllTestPlugins(session).forEach(PomeloLifecycleParticipant::replace);
     }
 
     private static void initializeScanReport(MavenSession session) throws MavenExecutionException {
