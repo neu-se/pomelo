@@ -7,7 +7,6 @@ import edu.neu.ccs.prl.pomelo.util.SystemPropertyUtil;
 import org.junit.runner.notification.RunNotifier;
 
 import java.io.File;
-import java.io.IOException;
 
 public final class FuzzForkMain {
     private FuzzForkMain() {
@@ -32,18 +31,11 @@ public final class FuzzForkMain {
     public static void run(String testClassName, String testMethodName, Guidance guidance, ClassLoader classLoader)
             throws Throwable {
         // Note: must set system properties before loading the test class
-        loadSystemProperties();
+        SystemPropertyUtil.loadSystemProperties();
         Class<?> testClass = Class.forName(testClassName, true, classLoader);
         Fuzzer fuzzer = new ZestFuzzer(testClass, testMethodName, guidance);
         ParameterizedTestType.findAndWrap(testClass, testMethodName)
                              .createParameterizedRunner(fuzzer)
                              .run(new RunNotifier());
-    }
-
-    private static void loadSystemProperties() throws IOException {
-        String path = System.getProperty("pomelo.properties");
-        if (path != null) {
-            SystemPropertyUtil.load(new File(path));
-        }
     }
 }

@@ -1,10 +1,10 @@
 package edu.neu.ccs.prl.pomelo;
 
 import edu.neu.ccs.prl.pomelo.util.FileUtil;
+import edu.neu.ccs.prl.pomelo.util.SystemPropertyUtil;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
@@ -78,8 +78,8 @@ public final class PluginUtil {
     }
 
     public static void writeProperties(Properties properties, File file) throws MojoExecutionException {
-        try (FileOutputStream out = new FileOutputStream(file)) {
-            properties.store(out, null);
+        try {
+            SystemPropertyUtil.store(file, null, properties);
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to write properties to file: " + file, e);
         }

@@ -26,4 +26,11 @@ public final class SystemPropertyUtil {
             properties.store(out, name);
         }
     }
+
+    public static void loadSystemProperties() throws IOException {
+        String path = System.getProperty("pomelo.properties");
+        if (path != null) {
+            load(new File(path));
+        }
+    }
 }
