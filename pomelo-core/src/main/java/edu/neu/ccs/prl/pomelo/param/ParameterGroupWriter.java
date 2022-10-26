@@ -4,5 +4,5 @@ import java.io.File;
 import java.io.IOException;
 
 public interface ParameterGroupWriter {
-    void write(File source, Object[] parameterGroup) throws IOException;
+    void write(File source, Object[] group) throws IOException;
 }

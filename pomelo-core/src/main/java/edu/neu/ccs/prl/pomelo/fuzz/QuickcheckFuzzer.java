@@ -2,16 +2,8 @@ package edu.neu.ccs.prl.pomelo.fuzz;
 
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
-import edu.neu.ccs.prl.pomelo.param.ParameterizedTestType;
 
 public abstract class QuickcheckFuzzer implements Fuzzer {
-    private final ArgumentsGenerator generator;
-
-    public QuickcheckFuzzer(Class<?> testClass, String testMethodName) {
-        this.generator = new ArgumentsGenerator(ParameterizedTestType.findAndWrap(testClass, testMethodName)
-                                                                     .getParameterTypeContexts());
-    }
-
     abstract void setUp();
 
     abstract void tearDown();
@@ -30,10 +22,11 @@ public abstract class QuickcheckFuzzer implements Fuzzer {
 
     @Override
     public void accept(StructuredFuzzTarget target) throws Throwable {
+        StructuredInputGenerator generator = target.createGenerator();
         setUp();
         try {
             while (hasNext()) {
-                Object[] arguments = generateNext();
+                Object[] arguments = generateNext(generator);
                 if (arguments != null) {
                     handleResult(target.run(arguments));
                 }
@@ -43,7 +36,7 @@ public abstract class QuickcheckFuzzer implements Fuzzer {
         }
     }
 
-    private Object[] generateNext() {
+    private Object[] generateNext(StructuredInputGenerator generator) {
         try {
             SourceOfRandomness source = next();
             Object[] arguments = generator.generate(source, createGenerationStatus(source));

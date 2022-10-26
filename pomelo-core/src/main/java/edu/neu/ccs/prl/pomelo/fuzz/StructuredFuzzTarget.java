@@ -17,8 +17,16 @@ public final class StructuredFuzzTarget {
         notifier.addListener(listener);
     }
 
+    public String getDescriptor() {
+        return runner.getParameterizedTest().getDescriptor();
+    }
+
     public TestExecutionResult run(Object[] arguments) throws Throwable {
         runner.runWithGroup(notifier, arguments);
         return listener.getTestResult();
+    }
+
+    public StructuredInputGenerator createGenerator() {
+        return runner.getParameterizedTest().createGenerator();
     }
 }

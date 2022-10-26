@@ -9,6 +9,10 @@ import org.junit.runners.model.Statement;
 public interface ParameterizedRunner {
     void run(RunNotifier notifier);
 
+    default void run() {
+        run(new RunNotifier());
+    }
+
     void runWithGroup(RunNotifier notifier, Object[] group) throws InitializationError;
 
     default Statement createStatement(RunNotifier notifier, Fuzzer fuzzer) {
@@ -20,4 +24,6 @@ public interface ParameterizedRunner {
             }
         };
     }
+
+    ParameterizedTest getParameterizedTest();
 }

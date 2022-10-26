@@ -1,7 +1,7 @@
 package edu.neu.ccs.prl.pomelo.param;
 
 import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
-import edu.neu.ccs.prl.pomelo.fuzz.ArgumentsGenerator;
+import edu.neu.ccs.prl.pomelo.fuzz.StructuredInputGenerator;
 import edu.neu.ccs.prl.pomelo.fuzz.Fuzzer;
 import junitparams.JUnitParamsRunner;
 import junitparams.internal.TestMethod;
@@ -17,7 +17,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class JUnitParamsWrapper implements ParameterizedTestWrapper {
+public final class JUnitParamsWrapper implements ParameterizedTest {
     private final Class<?> testClass;
     private final String testMethodName;
 
@@ -33,7 +33,7 @@ public final class JUnitParamsWrapper implements ParameterizedTestWrapper {
 
     @Override
     public ParameterizedRunner createParameterizedRunner(Fuzzer supplier) throws Throwable {
-        return new Runner(testClass, testMethodName, supplier);
+        return new Runner(testClass, testMethodName, supplier, this);
     }
 
     @Override
@@ -43,8 +43,13 @@ public final class JUnitParamsWrapper implements ParameterizedTestWrapper {
 
     @Override
     public List<ParameterTypeContext> getParameterTypeContexts() {
-        return ArgumentsGenerator.getParameterTypeContexts(
+        return StructuredInputGenerator.getParameterTypeContexts(
                 JUnitTestUtil.findFrameworkMethod(new TestClass(testClass), testMethodName).getMethod());
+    }
+
+    @Override
+    public String getDescriptor() {
+        return testClass.getName() + "#" + testMethodName;
     }
 
     public static boolean isType(Class<?> clazz) {
@@ -89,12 +94,14 @@ public final class JUnitParamsWrapper implements ParameterizedTestWrapper {
     private static class Runner extends JUnitParamsRunner implements ParameterizedRunner {
         private final Fuzzer supplier;
         private final FrameworkMethod method;
+        private final ParameterizedTest test;
         private Object[] parameterGroup;
 
-        private Runner(Class<?> clazz, String methodName, Fuzzer supplier) throws Throwable {
+        private Runner(Class<?> clazz, String methodName, Fuzzer supplier, ParameterizedTest test) throws Throwable {
             super(clazz);
             this.supplier = supplier;
             this.method = JUnitTestUtil.findFrameworkMethod(getTestClass(), methodName);
+            this.test = test;
         }
 
         @Override
@@ -123,6 +130,11 @@ public final class JUnitParamsWrapper implements ParameterizedTestWrapper {
                 }
             };
             runLeaf(statement, description, notifier);
+        }
+
+        @Override
+        public ParameterizedTest getParameterizedTest() {
+            return test;
         }
     }
 }

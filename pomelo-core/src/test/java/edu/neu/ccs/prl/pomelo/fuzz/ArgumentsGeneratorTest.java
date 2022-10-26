@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 public class ArgumentsGeneratorTest {
     @Test
     public void generatorsCorrectConstructorInjection() {
-        List<Generator<?>> generators = new ArgumentsGenerator(
+        List<Generator<?>> generators = new StructuredInputGenerator(
                 ParameterizedTestType.findAndWrap(new TestMethod(ParameterizedConstructorExample.class, "test1"))
                                      .getParameterTypeContexts()).getGenerators();
         Assert.assertEquals(2, generators.size());
@@ -24,7 +24,7 @@ public class ArgumentsGeneratorTest {
 
     @Test
     public void generatorsCorrectFieldInjection() {
-        List<Generator<?>> generators = new ArgumentsGenerator(
+        List<Generator<?>> generators = new StructuredInputGenerator(
                 ParameterizedTestType.findAndWrap(new TestMethod(ParameterizedFieldExample.class, "test1"))
                                      .getParameterTypeContexts()).getGenerators();
         Assert.assertEquals(2, generators.size());
@@ -34,7 +34,7 @@ public class ArgumentsGeneratorTest {
 
     @Test
     public void generatorsCorrectFieldInjectionFrom() {
-        List<Generator<?>> generators = new ArgumentsGenerator(
+        List<Generator<?>> generators = new StructuredInputGenerator(
                 ParameterizedTestType.findAndWrap(new TestMethod(ParameterizedFieldFromExample.class, "test1"))
                                      .getParameterTypeContexts()).getGenerators();
         Assert.assertEquals(Collections.singletonList(MyStringGenerator.class),
@@ -43,7 +43,7 @@ public class ArgumentsGeneratorTest {
 
     @Test
     public void generatorsCorrectMethodInjection() {
-        List<Generator<?>> generators = new ArgumentsGenerator(
+        List<Generator<?>> generators = new StructuredInputGenerator(
                 ParameterizedTestType.findAndWrap(new TestMethod(JUnitParamsExample.class, "test1"))
                                      .getParameterTypeContexts()).getGenerators();
         Assert.assertEquals(2, generators.size());
@@ -53,7 +53,7 @@ public class ArgumentsGeneratorTest {
 
     @Test
     public void generatorsCorrectMethodInjectionFrom() {
-        List<Generator<?>> generators = new ArgumentsGenerator(
+        List<Generator<?>> generators = new StructuredInputGenerator(
                 ParameterizedTestType.findAndWrap(new TestMethod(JUnitParamsExample.class, "testWithGenerator"))
                                      .getParameterTypeContexts()).getGenerators();
         Assert.assertEquals(Collections.singletonList(MyStringGenerator.class),

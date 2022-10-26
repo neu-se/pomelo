@@ -10,7 +10,7 @@ public enum ParameterizedTestType {
         }
 
         @Override
-        public ParameterizedTestWrapper wrap(Class<?> clazz, String methodName) {
+        public ParameterizedTest wrap(Class<?> clazz, String methodName) {
             return new JUnit4ParameterizedWrapper(clazz, methodName);
         }
     }, JUNIT_PARAMS() {
@@ -20,14 +20,14 @@ public enum ParameterizedTestType {
         }
 
         @Override
-        public ParameterizedTestWrapper wrap(Class<?> clazz, String methodName) {
+        public ParameterizedTest wrap(Class<?> clazz, String methodName) {
             return new JUnitParamsWrapper(clazz, methodName);
         }
     };
 
     public abstract boolean matches(Class<?> clazz, String methodName);
 
-    public abstract ParameterizedTestWrapper wrap(Class<?> clazz, String methodName);
+    public abstract ParameterizedTest wrap(Class<?> clazz, String methodName);
 
     public static ParameterizedTestType findType(Class<?> clazz, String methodName) {
         for (ParameterizedTestType type : values()) {
@@ -42,11 +42,11 @@ public enum ParameterizedTestType {
         return findType(method.getTestClass(), method.getTestMethodName()) != null;
     }
 
-    public static ParameterizedTestWrapper findAndWrap(TestMethod method) {
+    public static ParameterizedTest findAndWrap(TestMethod method) {
         return findAndWrap(method.getTestClass(), method.getTestMethodName());
     }
 
-    public static ParameterizedTestWrapper findAndWrap(Class<?> testClass, String testMethodName) {
+    public static ParameterizedTest findAndWrap(Class<?> testClass, String testMethodName) {
         ParameterizedTestType type = findType(testClass, testMethodName);
         if (type == null) {
             throw new IllegalArgumentException(

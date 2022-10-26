@@ -4,7 +4,6 @@ import edu.berkeley.cs.jqf.fuzz.ei.ZestGuidance;
 import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
 import edu.neu.ccs.prl.pomelo.param.ParameterizedTestType;
 import edu.neu.ccs.prl.pomelo.util.SystemPropertyUtil;
-import org.junit.runner.notification.RunNotifier;
 
 import java.io.File;
 
@@ -36,6 +35,6 @@ public final class FuzzForkMain {
         Fuzzer fuzzer = new ZestFuzzer(testClass, testMethodName, guidance);
         ParameterizedTestType.findAndWrap(testClass, testMethodName)
                              .createParameterizedRunner(fuzzer)
-                             .run(new RunNotifier());
+                             .run();
     }
 }

@@ -12,7 +12,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ArgumentsGenerator {
+public class StructuredInputGenerator {
     private static final GeneratorRepository BASE_REPOSITORY =
             new GeneratorRepository(new SourceOfRandomness(new Random()))
                     .register(new ServiceLoaderGeneratorSource());
@@ -20,7 +20,7 @@ public class ArgumentsGenerator {
     private final GeneratorRepository repository = createRepository();
     private final List<Generator<?>> generators;
 
-    public ArgumentsGenerator(List<ParameterTypeContext> contexts) {
+    public StructuredInputGenerator(List<ParameterTypeContext> contexts) {
         this.generators = Collections.unmodifiableList(
                 contexts.stream().map(x -> createGenerator(repository, x)).collect(Collectors.toList()));
     }

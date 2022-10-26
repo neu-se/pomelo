@@ -16,11 +16,11 @@ public class FileParameterGroupWriter implements ParameterGroupWriter {
     }
 
     @Override
-    public void write(File source, Object[] parameterGroup) throws IOException {
-        for (int i = 0; i < parameterGroup.length; i++) {
+    public void write(File source, Object[] group) throws IOException {
+        for (int i = 0; i < group.length; i++) {
             File file = new File(outputDirectory, String.format("%s.%d", source.getName(), i));
             try (PrintWriter out = new PrintWriter(file)) {
-                out.print(format(parameterGroup[i]));
+                out.print(format(group[i]));
             }
         }
     }

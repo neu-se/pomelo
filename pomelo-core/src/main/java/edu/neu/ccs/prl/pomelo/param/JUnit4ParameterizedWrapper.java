@@ -1,7 +1,7 @@
 package edu.neu.ccs.prl.pomelo.param;
 
 import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
-import edu.neu.ccs.prl.pomelo.fuzz.ArgumentsGenerator;
+import edu.neu.ccs.prl.pomelo.fuzz.StructuredInputGenerator;
 import edu.neu.ccs.prl.pomelo.fuzz.Fuzzer;
 import org.junit.runner.RunWith;
 import org.junit.runner.notification.RunNotifier;
@@ -17,7 +17,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public final class JUnit4ParameterizedWrapper implements ParameterizedTestWrapper {
+public final class JUnit4ParameterizedWrapper implements ParameterizedTest {
     private final Class<?> testClass;
     private final String testMethodName;
 
@@ -33,7 +33,7 @@ public final class JUnit4ParameterizedWrapper implements ParameterizedTestWrappe
 
     @Override
     public ParameterizedRunner createParameterizedRunner(Fuzzer supplier) throws Throwable {
-        return new Runner(testClass, testMethodName, supplier);
+        return new Runner(testClass, testMethodName, supplier, this);
     }
 
     @Override
@@ -58,8 +58,13 @@ public final class JUnit4ParameterizedWrapper implements ParameterizedTestWrappe
     public List<ParameterTypeContext> getParameterTypeContexts() {
         TestClass c = new TestClass(testClass);
         List<FrameworkField> fields = c.getAnnotatedFields(Parameterized.Parameter.class);
-        return fields.isEmpty() ? ArgumentsGenerator.getParameterTypeContexts(c.getOnlyConstructor()) :
-                ArgumentsGenerator.getParameterTypeContexts(getInjectableFields(c));
+        return fields.isEmpty() ? StructuredInputGenerator.getParameterTypeContexts(c.getOnlyConstructor()) :
+                StructuredInputGenerator.getParameterTypeContexts(getInjectableFields(c));
+    }
+
+    @Override
+    public String getDescriptor() {
+        return testClass.getName() + "#" + testMethodName;
     }
 
     public static boolean isType(Class<?> clazz) {
@@ -68,28 +73,24 @@ public final class JUnit4ParameterizedWrapper implements ParameterizedTestWrappe
     }
 
     private static List<Field> getInjectableFields(TestClass clazz) {
-        return clazz.getAnnotatedFields(Parameterized.Parameter.class)
-                    .stream()
-                    .map(FrameworkField::getField)
+        return clazz.getAnnotatedFields(Parameterized.Parameter.class).stream().map(FrameworkField::getField)
                     .sorted(Comparator.comparing(f -> f.getAnnotation(Parameterized.Parameter.class).value()))
                     .collect(Collectors.toList());
     }
 
     private static FrameworkMethod getParametersMethod(TestClass testClass) {
-        return testClass.getAnnotatedMethods(Parameterized.Parameters.class)
-                        .stream()
-                        .filter(FrameworkMethod::isPublic)
-                        .filter(FrameworkMethod::isStatic)
-                        .findFirst()
-                        .orElseThrow(IllegalStateException::new);
+        return testClass.getAnnotatedMethods(Parameterized.Parameters.class).stream().filter(FrameworkMethod::isPublic)
+                        .filter(FrameworkMethod::isStatic).findFirst().orElseThrow(IllegalStateException::new);
     }
 
     private static class Runner extends Parameterized implements ParameterizedRunner {
         private final Fuzzer supplier;
         private final FrameworkMethod method;
+        private final ParameterizedTest test;
 
-        private Runner(Class<?> clazz, String methodName, Fuzzer supplier) throws Throwable {
+        private Runner(Class<?> clazz, String methodName, Fuzzer supplier, ParameterizedTest test) throws Throwable {
             super(clazz);
+            this.test = test;
             if (supplier == null) {
                 throw new NullPointerException();
             }
@@ -113,6 +114,11 @@ public final class JUnit4ParameterizedWrapper implements ParameterizedTestWrappe
                     }
                 }
             }.run(notifier);
+        }
+
+        @Override
+        public ParameterizedTest getParameterizedTest() {
+            return test;
         }
     }
 }

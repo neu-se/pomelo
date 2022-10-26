@@ -22,7 +22,7 @@ final class ZestFuzzer extends QuickcheckFuzzer {
     private final String testMethodName;
 
     public ZestFuzzer(Class<?> testClass, String testMethodName, Guidance guidance) {
-        super(testClass, testMethodName);
+        super();
         if (testClass == null || testMethodName == null || guidance == null) {
             throw new NullPointerException();
         }
