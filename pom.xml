@@ -36,6 +36,9 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <snapshot.distro.url>https://s01.oss.sonatype.org/content/repositories/snapshots</snapshot.distro.url>
+        <release.distro.url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</release.distro.url>
+        <distro.id>ossrh</distro.id>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -189,7 +192,7 @@
                         <dependency>
                             <groupId>com.puppycrawl.tools</groupId>
                             <artifactId>checkstyle</artifactId>
-                            <version>8.26</version>
+                            <version>8.29</version>
                         </dependency>
                     </dependencies>
                     <executions>
@@ -264,15 +267,23 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>github</id>
+            <properties>
+                <distro.id>github</distro.id>
+                <release.distro.url>https://maven.pkg.github.com/neu-se/pomelo</release.distro.url>
+                <distro.url>https://maven.pkg.github.com/neu-se/pomelo</distro.url>
+            </properties>
+        </profile>
     </profiles>
     <distributionManagement>
         <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+            <id>${distro.id}</id>
+            <url>${snapshot.distro.url}</url>
         </snapshotRepository>
         <repository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>${distro.id}</id>
+            <url>${release.distro.url}</url>
         </repository>
     </distributionManagement>
     <repositories>

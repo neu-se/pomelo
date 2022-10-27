@@ -1,0 +1,35 @@
+name: Publish artifacts to the Maven Central Repository and GitHub Packages
+on:
+  push:
+    branches:
+      - main
+jobs:
+  publish-ossrh:
+    runs-on: self-hosted
+    env:
+      JAVA_HOME: /usr/lib/jvm/jdk1.8.0_301/
+    steps:
+      - uses: actions/checkout@v3
+      - name: deploy
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_KEY_PASSPHRASE: ${{ secrets.DEPLOY_KEY_PASSPHRASE }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        run: .github/deployment/deploy.sh
+        shell: bash
+  publish-github:
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'adopt'
+      - name: Publish package
+        run: mvn -P github --batch-mode deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
