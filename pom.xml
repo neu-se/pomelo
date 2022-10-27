@@ -36,9 +36,6 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <snapshot.distro.url>https://s01.oss.sonatype.org/content/repositories/snapshots</snapshot.distro.url>
-        <release.distro.url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</release.distro.url>
-        <distro.id>ossrh</distro.id>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -267,23 +264,15 @@
                 </plugins>
             </build>
         </profile>
-        <profile>
-            <id>github</id>
-            <properties>
-                <distro.id>github</distro.id>
-                <release.distro.url>https://maven.pkg.github.com/neu-se/pomelo</release.distro.url>
-                <snapshot.distro.url>https://maven.pkg.github.com/neu-se/pomelo</snapshot.distro.url>
-            </properties>
-        </profile>
     </profiles>
     <distributionManagement>
         <snapshotRepository>
-            <id>${distro.id}</id>
-            <url>${snapshot.distro.url}</url>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
         </snapshotRepository>
         <repository>
-            <id>${distro.id}</id>
-            <url>${release.distro.url}</url>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
     <repositories>
