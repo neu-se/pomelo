@@ -1,9 +1,9 @@
 package edu.neu.ccs.prl.pomelo.fuzz;
 
 import edu.neu.ccs.prl.meringue.AnalysisRunner;
+import edu.neu.ccs.prl.meringue.ArtifactSourceResolver;
 import edu.neu.ccs.prl.meringue.CoverageFilter;
 import edu.neu.ccs.prl.meringue.JacocoReportFormat;
-import edu.neu.ccs.prl.meringue.SourcesResolver;
 import edu.neu.ccs.prl.pomelo.PluginUtil;
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.artifact.resolver.ResolutionErrorHandler;
@@ -22,7 +22,7 @@ public class PomeloAnalyzer {
     private final File outputDirectory;
     private final File temporaryDirectory;
     private final Duration timeout;
-    private final SourcesResolver sourcesResolver;
+    private final ArtifactSourceResolver resolver;
     private final PomeloFuzzer fuzzer;
     private final int maxTraceSize;
     private final boolean verbose;
@@ -33,21 +33,19 @@ public class PomeloAnalyzer {
                    File outputDirectory, int maxTraceSize, boolean debug, long timeout, boolean verbose,
                    File temporaryDirectory, ArtifactResolver artifactResolver,
                    ArtifactHandlerManager artifactHandlerManager, ResolutionErrorHandler errorHandler,
-                   List<JacocoReportFormat> formats)
-            throws MojoExecutionException {
+                   List<JacocoReportFormat> formats) throws MojoExecutionException {
         this.debug = debug;
         this.formats = formats;
-        this.fuzzer =
-                new PomeloFuzzer(mojo, testClass, testMethod, duration, outputDirectory, temporaryDirectory,
-                                 errorHandler, true);
+        this.fuzzer = new PomeloFuzzer(mojo, testClass, testMethod, duration, outputDirectory, temporaryDirectory,
+                                       errorHandler, true);
         this.maxTraceSize = maxTraceSize;
         this.verbose = verbose;
         this.mojo = mojo;
         this.outputDirectory = outputDirectory;
         this.temporaryDirectory = temporaryDirectory;
         this.timeout = Duration.ofMillis(timeout);
-        this.sourcesResolver =
-                new SourcesResolver(mojo.getLog(), mojo.getSession(), artifactResolver, artifactHandlerManager);
+        this.resolver =
+                new ArtifactSourceResolver(mojo.getLog(), mojo.getSession(), artifactResolver, artifactHandlerManager);
     }
 
     public void analyze() throws MojoExecutionException {
@@ -60,12 +58,10 @@ public class PomeloAnalyzer {
         Properties frameworkProperties = fuzzer.createFrameworkProperties();
         CoverageFilter filter =
                 new CoverageFilter(Collections.emptyList(), Collections.singletonList("edu/neu/ccs/prl/pomelo/**"),
-                                   Collections.emptyList());
-        new AnalysisRunner(sourcesResolver, mojo.getLog(), debug, verbose, timeout, maxTraceSize,
-                           filter, outputDirectory, meringueDirectory, mojo.getProject(),
-                           fuzzer.getConfiguration().getTestClasspathElements()).run(
-                fuzzer.createCampaignConfiguration(campaignDirectory, false),
-                PomeloFuzzFramework.class.getName(),
-                frameworkProperties, formats);
+                                   Collections.emptyList(), mojo.getProject(), resolver);
+        new AnalysisRunner(mojo.getLog(), debug, verbose, timeout, maxTraceSize, filter, outputDirectory,
+                           meringueDirectory)
+                .run(fuzzer.createCampaignConfiguration(campaignDirectory, false),
+                     PomeloFuzzFramework.class.getName(), frameworkProperties, formats);
     }
 }
