@@ -16,8 +16,7 @@ jobs:
           DEPLOY_KEY_PASSPHRASE: ${{ secrets.DEPLOY_KEY_PASSPHRASE }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        run: .github/deployment/deploy.sh
-        shell: bash
+        run: bash .github/deployment/deploy.sh
   publish-github:
     runs-on: self-hosted
     permissions:

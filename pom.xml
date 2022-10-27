@@ -272,7 +272,7 @@
             <properties>
                 <distro.id>github</distro.id>
                 <release.distro.url>https://maven.pkg.github.com/neu-se/pomelo</release.distro.url>
-                <distro.url>https://maven.pkg.github.com/neu-se/pomelo</distro.url>
+                <snapshot.distro.url>https://maven.pkg.github.com/neu-se/pomelo</snapshot.distro.url>
             </properties>
         </profile>
     </profiles>
