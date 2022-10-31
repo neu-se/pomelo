@@ -2,6 +2,7 @@ package edu.neu.ccs.prl.pomelo.param;
 
 import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
 import edu.neu.ccs.prl.pomelo.fuzz.Fuzzer;
+import edu.neu.ccs.prl.pomelo.fuzz.StructuredFuzzTarget;
 import edu.neu.ccs.prl.pomelo.fuzz.StructuredInputGenerator;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
@@ -19,8 +20,7 @@ public class JqfWrapper implements ParameterizedTest {
 
     static {
         try {
-            @SuppressWarnings("unchecked")
-            Class<? extends Annotation> temp =
+            @SuppressWarnings("unchecked") Class<? extends Annotation> temp =
                     (Class<? extends Annotation>) Class.forName("edu.berkeley.cs.jqf.fuzz.Fuzz");
             FUZZ_CLASS = temp;
         } catch (ClassNotFoundException e) {
@@ -68,6 +68,7 @@ public class JqfWrapper implements ParameterizedTest {
         private final ParameterizedTest test;
         private final List<Class<?>> expectedExceptions;
         private Object[] group;
+        private Throwable error;
 
         private Runner(Class<?> clazz, String methodName, Fuzzer fuzzer, ParameterizedTest test) throws Throwable {
             super(clazz);
@@ -78,6 +79,19 @@ public class JqfWrapper implements ParameterizedTest {
             this.fuzzer = fuzzer;
             this.method = JUnitTestUtil.findFrameworkMethod(FUZZ_CLASS, getTestClass(), methodName);
             this.expectedExceptions = Arrays.asList(method.getMethod().getExceptionTypes());
+        }
+
+        @Override
+        protected Statement childrenInvoker(RunNotifier notifier) {
+            return new StructuredFuzzTarget(this, notifier).createStatement(fuzzer, (t) -> error = t);
+        }
+
+        @Override
+        public void run(RunNotifier notifier) {
+            super.run(notifier);
+            if (error != null) {
+                throw new RuntimeException(error);
+            }
         }
 
         @Override
@@ -99,11 +113,6 @@ public class JqfWrapper implements ParameterizedTest {
                     }
                 }
             };
-        }
-
-        @Override
-        protected Statement childrenInvoker(RunNotifier notifier) {
-            return createStatement(notifier, fuzzer);
         }
 
         @Override

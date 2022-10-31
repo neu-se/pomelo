@@ -2,6 +2,7 @@ package edu.neu.ccs.prl.pomelo.param;
 
 import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
 import edu.neu.ccs.prl.pomelo.fuzz.Fuzzer;
+import edu.neu.ccs.prl.pomelo.fuzz.StructuredFuzzTarget;
 import edu.neu.ccs.prl.pomelo.fuzz.StructuredInputGenerator;
 import junitparams.JUnitParamsRunner;
 import junitparams.internal.TestMethod;
@@ -87,21 +88,30 @@ public final class JUnitParamsWrapper implements ParameterizedTest {
     }
 
     private static class Runner extends JUnitParamsRunner implements ParameterizedRunner {
-        private final Fuzzer supplier;
+        private final Fuzzer fuzzer;
         private final FrameworkMethod method;
         private final ParameterizedTest test;
         private Object[] group;
+        private Throwable error;
 
-        private Runner(Class<?> clazz, String methodName, Fuzzer supplier, ParameterizedTest test) throws Throwable {
+        private Runner(Class<?> clazz, String methodName, Fuzzer fuzzer, ParameterizedTest test) throws Throwable {
             super(clazz);
-            this.supplier = supplier;
+            this.fuzzer = fuzzer;
             this.method = JUnitTestUtil.findFrameworkMethod(Test.class, getTestClass(), methodName);
             this.test = test;
         }
 
         @Override
         protected Statement childrenInvoker(RunNotifier notifier) {
-            return createStatement(notifier, supplier);
+            return new StructuredFuzzTarget(this, notifier).createStatement(fuzzer, (t) -> error = t);
+        }
+
+        @Override
+        public void run(RunNotifier notifier) {
+            super.run(notifier);
+            if (error != null) {
+                throw new RuntimeException(error);
+            }
         }
 
         @Override
