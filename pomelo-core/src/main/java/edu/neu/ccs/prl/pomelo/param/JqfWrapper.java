@@ -3,7 +3,6 @@ package edu.neu.ccs.prl.pomelo.param;
 import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
 import edu.neu.ccs.prl.pomelo.fuzz.Fuzzer;
 import edu.neu.ccs.prl.pomelo.fuzz.StructuredInputGenerator;
-import org.junit.Test;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
@@ -16,6 +15,19 @@ import java.util.Collections;
 import java.util.List;
 
 public class JqfWrapper implements ParameterizedTest {
+    private static final Class<? extends Annotation> FUZZ_CLASS;
+
+    static {
+        try {
+            @SuppressWarnings("unchecked")
+            Class<? extends Annotation> temp =
+                    (Class<? extends Annotation>) Class.forName("edu.berkeley.cs.jqf.fuzz.Fuzz");
+            FUZZ_CLASS = temp;
+        } catch (ClassNotFoundException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
+
     private final Class<?> testClass;
     private final String testMethodName;
 
@@ -42,7 +54,7 @@ public class JqfWrapper implements ParameterizedTest {
     @Override
     public List<ParameterTypeContext> getParameterTypeContexts() {
         return StructuredInputGenerator.getParameterTypeContexts(
-                JUnitTestUtil.findFrameworkMethod(Test.class, new TestClass(testClass), testMethodName).getMethod());
+                JUnitTestUtil.findFrameworkMethod(FUZZ_CLASS, new TestClass(testClass), testMethodName).getMethod());
     }
 
     @Override
@@ -64,9 +76,7 @@ public class JqfWrapper implements ParameterizedTest {
                 throw new NullPointerException();
             }
             this.fuzzer = fuzzer;
-            @SuppressWarnings("unchecked") Class<? extends Annotation> fuzz =
-                    (Class<? extends Annotation>) Class.forName("edu.berkeley.cs.jqf.fuzz.Fuzz");
-            this.method = JUnitTestUtil.findFrameworkMethod(fuzz, getTestClass(), methodName);
+            this.method = JUnitTestUtil.findFrameworkMethod(FUZZ_CLASS, getTestClass(), methodName);
             this.expectedExceptions = Arrays.asList(method.getMethod().getExceptionTypes());
         }
 
