@@ -11,7 +11,8 @@ public class JUnitTestUtilTest {
     @Test
     public void findsCorrectFrameworkMethod() {
         FrameworkMethod method =
-                JUnitTestUtil.findFrameworkMethod(new TestClass(ParameterizedConstructorExample.class), "test1");
+                JUnitTestUtil.findFrameworkMethod(Test.class, new TestClass(ParameterizedConstructorExample.class),
+                                                  "test1");
         Assert.assertNotNull(method);
         Assert.assertEquals("test1", method.getName());
     }

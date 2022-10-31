@@ -1,6 +1,7 @@
 package edu.neu.ccs.prl.pomelo.scan;
 
 import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
+import edu.neu.ccs.prl.pomelo.fuzz.FixedListFuzzer;
 import edu.neu.ccs.prl.pomelo.fuzz.StructuredInputGenerator;
 import edu.neu.ccs.prl.pomelo.fuzz.Fuzzer;
 import edu.neu.ccs.prl.pomelo.param.*;

@@ -41,6 +41,14 @@ public class JUnitParamsExample {
         }
     }
 
+    @Test
+    @Parameters(method = "source")
+    public void testWithMethodSource(String s) {
+        if (s.equals("hello")) {
+            throw new IllegalArgumentException();
+        }
+    }
+
     @BeforeClass
     public static void beforeClass() {
         values.add("bc");
@@ -49,5 +57,12 @@ public class JUnitParamsExample {
     @AfterClass
     public static void afterClass() {
         values.add("ac");
+    }
+
+    public static Object[][] source() {
+        return new Object[][]{
+                new Object[]{"hi"},
+                new Object[]{"world"}
+        };
     }
 }

@@ -1,12 +1,12 @@
 package edu.neu.ccs.prl.pomelo.param;
 
 import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
-import edu.neu.ccs.prl.pomelo.fuzz.StructuredInputGenerator;
 import edu.neu.ccs.prl.pomelo.fuzz.Fuzzer;
+import edu.neu.ccs.prl.pomelo.fuzz.StructuredInputGenerator;
 import junitparams.JUnitParamsRunner;
 import junitparams.internal.TestMethod;
+import org.junit.Test;
 import org.junit.runner.Description;
-import org.junit.runner.RunWith;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -24,7 +24,7 @@ public final class JUnitParamsWrapper implements ParameterizedTest {
     public JUnitParamsWrapper(Class<?> testClass, String testMethodName) {
         if (testClass == null || testMethodName == null) {
             throw new NullPointerException();
-        } else if (!isType(testClass)) {
+        } else if (!ParameterizedTestType.JUNIT_PARAMS.matches(testClass, testMethodName)) {
             throw new IllegalArgumentException(testClass + " is not a JUnitParams test");
         }
         this.testClass = testClass;
@@ -32,8 +32,8 @@ public final class JUnitParamsWrapper implements ParameterizedTest {
     }
 
     @Override
-    public ParameterizedRunner createParameterizedRunner(Fuzzer supplier) throws Throwable {
-        return new Runner(testClass, testMethodName, supplier, this);
+    public ParameterizedRunner createParameterizedRunner(Fuzzer fuzzer) throws Throwable {
+        return new Runner(testClass, testMethodName, fuzzer, this);
     }
 
     @Override
@@ -44,7 +44,7 @@ public final class JUnitParamsWrapper implements ParameterizedTest {
     @Override
     public List<ParameterTypeContext> getParameterTypeContexts() {
         return StructuredInputGenerator.getParameterTypeContexts(
-                JUnitTestUtil.findFrameworkMethod(new TestClass(testClass), testMethodName).getMethod());
+                JUnitTestUtil.findFrameworkMethod(Test.class, new TestClass(testClass), testMethodName).getMethod());
     }
 
     @Override
@@ -52,14 +52,9 @@ public final class JUnitParamsWrapper implements ParameterizedTest {
         return testClass.getName() + "#" + testMethodName;
     }
 
-    public static boolean isType(Class<?> clazz) {
-        return clazz.isAnnotationPresent(RunWith.class) &&
-                clazz.getAnnotation(RunWith.class).value().equals(JUnitParamsRunner.class);
-    }
-
     private static List<Object[]> getOriginalParameterGroups(Class<?> clazz, String testMethodName) throws Throwable {
         TestClass testClass = new TestClass(clazz);
-        FrameworkMethod testMethod = JUnitTestUtil.findFrameworkMethod(testClass, testMethodName);
+        FrameworkMethod testMethod = JUnitTestUtil.findFrameworkMethod(Test.class, testClass, testMethodName);
         Object[] parametersSets = new TestMethod(testMethod, testClass).parametersSets();
         RecordingFrameworkMethod m = new RecordingFrameworkMethod(testMethod.getMethod());
         for (int i = 0; i < parametersSets.length; i++) {
@@ -95,12 +90,12 @@ public final class JUnitParamsWrapper implements ParameterizedTest {
         private final Fuzzer supplier;
         private final FrameworkMethod method;
         private final ParameterizedTest test;
-        private Object[] parameterGroup;
+        private Object[] group;
 
         private Runner(Class<?> clazz, String methodName, Fuzzer supplier, ParameterizedTest test) throws Throwable {
             super(clazz);
             this.supplier = supplier;
-            this.method = JUnitTestUtil.findFrameworkMethod(getTestClass(), methodName);
+            this.method = JUnitTestUtil.findFrameworkMethod(Test.class, getTestClass(), methodName);
             this.test = test;
         }
 
@@ -114,7 +109,7 @@ public final class JUnitParamsWrapper implements ParameterizedTest {
             return new Statement() {
                 @Override
                 public void evaluate() throws Throwable {
-                    frameworkMethod.invokeExplosively(test, parameterGroup);
+                    frameworkMethod.invokeExplosively(test, group);
                 }
             };
         }
@@ -122,7 +117,7 @@ public final class JUnitParamsWrapper implements ParameterizedTest {
         @Override
         public void runWithGroup(RunNotifier notifier, Object[] group) {
             Description description = describeChild(method);
-            this.parameterGroup = group;
+            this.group = group;
             Statement statement = new Statement() {
                 @Override
                 public void evaluate() throws Throwable {

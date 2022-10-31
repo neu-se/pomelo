@@ -1,6 +1,5 @@
 package edu.neu.ccs.prl.pomelo.fuzz;
 
-import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 import edu.berkeley.cs.jqf.fuzz.guidance.*;
 import edu.berkeley.cs.jqf.fuzz.junit.quickcheck.FastSourceOfRandomness;
@@ -14,7 +13,7 @@ import org.junit.runners.model.MultipleFailureException;
 import java.io.EOFException;
 import java.util.*;
 
-final class ZestFuzzer extends QuickcheckFuzzer {
+final class ZestFuzzer implements Fuzzer {
     private final Guidance guidance;
     private final List<Throwable> failures = new LinkedList<>();
     private final Set<List<StackTraceElement>> traces = new HashSet<>();
@@ -22,7 +21,6 @@ final class ZestFuzzer extends QuickcheckFuzzer {
     private final String testMethodName;
 
     public ZestFuzzer(Class<?> testClass, String testMethodName, Guidance guidance) {
-        super();
         if (testClass == null || testMethodName == null || guidance == null) {
             throw new NullPointerException();
         }
@@ -32,41 +30,26 @@ final class ZestFuzzer extends QuickcheckFuzzer {
     }
 
     @Override
-    public void setUp() {
+    public void accept(StructuredFuzzTarget target) throws Throwable {
+        StructuredInputGenerator generator = target.createGenerator();
         SingleSnoop.setCallbackGenerator(guidance::generateCallBack);
         SingleSnoop.startSnooping(testClass.getName() + "#" + testMethodName);
-    }
-
-    @Override
-    public void tearDown() {
-        if (!failures.isEmpty()) {
-            new MultipleFailureException(failures).printStackTrace();
+        try {
+            while (guidance.hasInput()) {
+                Object[] arguments = generateNext(generator);
+                if (arguments != null) {
+                    handleResult(target.run(arguments));
+                }
+            }
+        } finally {
+            if (!failures.isEmpty()) {
+                new MultipleFailureException(failures).printStackTrace();
+            }
+            TraceLogger.get().remove();
         }
-        TraceLogger.get().remove();
     }
 
-    @Override
-    public boolean hasNext() {
-        return guidance.hasInput();
-    }
-
-    @Override
-    public void handleGenerateFailure(Throwable failure) {
-        if (failure instanceof IllegalStateException && failure.getCause() instanceof EOFException) {
-            guidance.handleResult(Result.INVALID,
-                                  new AssumptionViolatedException("StreamBackedRandom does not have enough data",
-                                                                  failure.getCause()));
-        }
-        handleTestFailure(failure);
-    }
-
-    @Override
-    public void handleGenerateSuccess(Object[] arguments) {
-        guidance.observeGeneratedArgs(arguments);
-    }
-
-    @Override
-    public void handleResult(TestExecutionResult result) {
+    private void handleResult(TestExecutionResult result) {
         switch (result.getStatus()) {
             case SUCCESSFUL:
                 guidance.handleResult(Result.SUCCESS, null);
@@ -77,16 +60,6 @@ final class ZestFuzzer extends QuickcheckFuzzer {
             case FAILED:
                 handleTestFailure(result.getFailure());
         }
-    }
-
-    @Override
-    public SourceOfRandomness next() {
-        return new FastSourceOfRandomness(new StreamBackedRandom(guidance.getInput(), Long.BYTES));
-    }
-
-    @Override
-    public GenerationStatus createGenerationStatus(SourceOfRandomness source) {
-        return new NonTrackingGenerationStatus(source);
     }
 
     private void handleTestFailure(Throwable failure) {
@@ -103,6 +76,24 @@ final class ZestFuzzer extends QuickcheckFuzzer {
                 failures.add(failure);
             }
             guidance.handleResult(Result.FAILURE, failure);
+        }
+    }
+
+    private Object[] generateNext(StructuredInputGenerator generator) {
+        try {
+            SourceOfRandomness source =
+                    new FastSourceOfRandomness(new StreamBackedRandom(guidance.getInput(), Long.BYTES));
+            Object[] arguments = generator.generate(source, new NonTrackingGenerationStatus(source));
+            guidance.observeGeneratedArgs(arguments);
+            return arguments;
+        } catch (Throwable t) {
+            if (t instanceof IllegalStateException && t.getCause() instanceof EOFException) {
+                guidance.handleResult(Result.INVALID,
+                                      new AssumptionViolatedException("StreamBackedRandom does not have enough data",
+                                                                      t.getCause()));
+            }
+            handleTestFailure(t);
+            return null;
         }
     }
 }

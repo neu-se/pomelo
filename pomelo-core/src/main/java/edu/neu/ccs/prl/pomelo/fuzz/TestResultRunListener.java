@@ -4,7 +4,7 @@ import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
-public class TestResultRunListener extends RunListener {
+class TestResultRunListener extends RunListener {
     private Throwable failure = null;
     private Throwable assumptionFailure = null;
     private TestExecutionResult result = null;

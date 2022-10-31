@@ -1,7 +1,4 @@
-package edu.neu.ccs.prl.pomelo.param;
-
-import edu.neu.ccs.prl.pomelo.fuzz.Fuzzer;
-import edu.neu.ccs.prl.pomelo.fuzz.StructuredFuzzTarget;
+package edu.neu.ccs.prl.pomelo.fuzz;
 
 import java.util.Collection;
 import java.util.LinkedList;

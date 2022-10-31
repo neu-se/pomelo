@@ -1,9 +1,9 @@
 package edu.neu.ccs.prl.pomelo.param;
 
 import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
-import edu.neu.ccs.prl.pomelo.fuzz.StructuredInputGenerator;
 import edu.neu.ccs.prl.pomelo.fuzz.Fuzzer;
-import org.junit.runner.RunWith;
+import edu.neu.ccs.prl.pomelo.fuzz.StructuredInputGenerator;
+import org.junit.Test;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.Parameterized;
 import org.junit.runners.model.*;
@@ -24,16 +24,16 @@ public final class JUnit4ParameterizedWrapper implements ParameterizedTest {
     public JUnit4ParameterizedWrapper(Class<?> testClass, String testMethodName) {
         if (testClass == null || testMethodName == null) {
             throw new NullPointerException();
-        } else if (!isType(testClass)) {
-            throw new IllegalArgumentException(testClass + " is not a JUnitParams test");
+        } else if (!ParameterizedTestType.JUNIT4_PARAMETERIZED.matches(testClass, testMethodName)) {
+            throw new IllegalArgumentException(testClass + " is not a Parameterized test");
         }
         this.testClass = testClass;
         this.testMethodName = testMethodName;
     }
 
     @Override
-    public ParameterizedRunner createParameterizedRunner(Fuzzer supplier) throws Throwable {
-        return new Runner(testClass, testMethodName, supplier, this);
+    public ParameterizedRunner createParameterizedRunner(Fuzzer fuzzer) throws Throwable {
+        return new Runner(testClass, testMethodName, fuzzer, this);
     }
 
     @Override
@@ -67,11 +67,6 @@ public final class JUnit4ParameterizedWrapper implements ParameterizedTest {
         return testClass.getName() + "#" + testMethodName;
     }
 
-    public static boolean isType(Class<?> clazz) {
-        return clazz.isAnnotationPresent(RunWith.class) &&
-                clazz.getAnnotation(RunWith.class).value().equals(Parameterized.class);
-    }
-
     private static List<Field> getInjectableFields(TestClass clazz) {
         return clazz.getAnnotatedFields(Parameterized.Parameter.class).stream().map(FrameworkField::getField)
                     .sorted(Comparator.comparing(f -> f.getAnnotation(Parameterized.Parameter.class).value()))
@@ -95,7 +90,7 @@ public final class JUnit4ParameterizedWrapper implements ParameterizedTest {
                 throw new NullPointerException();
             }
             this.supplier = supplier;
-            this.method = JUnitTestUtil.findFrameworkMethod(getTestClass(), methodName);
+            this.method = JUnitTestUtil.findFrameworkMethod(Test.class, getTestClass(), methodName);
         }
 
         @Override
