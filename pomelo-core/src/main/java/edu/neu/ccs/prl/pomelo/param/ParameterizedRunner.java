@@ -16,13 +16,10 @@ public interface ParameterizedRunner {
     void runWithGroup(RunNotifier notifier, Object[] group) throws InitializationError;
 
     default Statement createStatement(RunNotifier notifier, Fuzzer fuzzer) {
-        StructuredFuzzTarget target = new StructuredFuzzTarget(this, notifier);
-        return new Statement() {
-            @Override
-            public void evaluate() throws Throwable {
-                fuzzer.accept(target);
-            }
-        };
+        return new StructuredFuzzTarget(this, notifier).createStatement(fuzzer,
+                                                                        (t) -> {
+                                                                            throw new RuntimeException(t);
+                                                                        });
     }
 
     ParameterizedTest getParameterizedTest();

@@ -2,6 +2,9 @@ package edu.neu.ccs.prl.pomelo.fuzz;
 
 import edu.neu.ccs.prl.pomelo.param.ParameterizedRunner;
 import org.junit.runner.notification.RunNotifier;
+import org.junit.runners.model.Statement;
+
+import java.util.function.Consumer;
 
 public final class StructuredFuzzTarget {
     private final TestResultRunListener listener = new TestResultRunListener();
@@ -28,5 +31,18 @@ public final class StructuredFuzzTarget {
 
     public StructuredInputGenerator createGenerator() {
         return runner.getParameterizedTest().createGenerator();
+    }
+
+    public Statement createStatement(Fuzzer fuzzer, Consumer<Throwable> errorHandler) {
+        return new Statement() {
+            @Override
+            public void evaluate() {
+                try {
+                    fuzzer.accept(StructuredFuzzTarget.this);
+                } catch (Throwable t) {
+                    errorHandler.accept(t);
+                }
+            }
+        };
     }
 }
