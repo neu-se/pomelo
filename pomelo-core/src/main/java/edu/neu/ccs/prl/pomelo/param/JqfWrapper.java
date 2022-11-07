@@ -89,7 +89,10 @@ public class JqfWrapper implements ParameterizedTest {
         @Override
         public void run(RunNotifier notifier) {
             super.run(notifier);
-            if (error != null) {
+            if (error instanceof RuntimeException) {
+                throw (RuntimeException) error;
+            } else if (error != null) {
+                // Wrap checked exceptions
                 throw new RuntimeException(error);
             }
         }
