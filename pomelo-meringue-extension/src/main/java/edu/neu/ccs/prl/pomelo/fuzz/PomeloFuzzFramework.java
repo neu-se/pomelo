@@ -85,9 +85,10 @@ public class PomeloFuzzFramework implements FuzzFramework {
         List<String> excludes =
                 Arrays.asList("java/", "com/sun/proxy/", "com/intellij/", "edu/berkeley/cs/jqf/", "org/junit/",
                               "com/pholser/junit/quickcheck/", "ru/vyarus/java/generics/resolver/",
-                              "org/javaruntype/,ognl", "org/hamcrest/,org/omg/", "org/netbeans/",
+                              "org/javaruntype/", "org/hamcrest/", "org/omg/", "org/netbeans/",
                               "edu/neu/ccs/prl/pomelo");
-        List<String> includes = Arrays.asList("edu/berkeley/cs/jqf/examples", "java/text", "java/time", "sun/imageio",
+        List<String> includes = Arrays.asList("edu/berkeley/cs/jqf/examples", "java/text", "java/time",
+                                              "com/sun/imageio",
                                               "com/pholser/junit/quickcheck/internal",
                                               "com/pholser/junit/quickcheck/generator");
         try (PrintWriter out = new PrintWriter(file)) {
