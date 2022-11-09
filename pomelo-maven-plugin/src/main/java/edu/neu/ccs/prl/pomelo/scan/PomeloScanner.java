@@ -1,8 +1,8 @@
 package edu.neu.ccs.prl.pomelo.scan;
 
+import edu.neu.ccs.prl.meringue.DependencyResolver;
 import edu.neu.ccs.prl.meringue.JvmLauncher;
 import edu.neu.ccs.prl.meringue.ProcessUtil;
-import edu.neu.ccs.prl.pomelo.DependencyResolver;
 import edu.neu.ccs.prl.pomelo.JvmConfiguration;
 import edu.neu.ccs.prl.pomelo.PluginUtil;
 import edu.neu.ccs.prl.pomelo.SurefireMojoWrapper;

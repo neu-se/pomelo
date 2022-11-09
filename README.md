@@ -119,7 +119,6 @@ Then, invoke maven as you would normally to run the test adding the following op
 [-Dpomelo.verbose]
 [-D-Dpomelo.debug]
 [-Dpomelo.timeout=<Y>]
-[-Dpomelo.fuzz.quiet]
 [-Dpomelo.jacocoFormats=<F>]
 ```
 
@@ -145,9 +144,6 @@ Where:
   on port 5005. By default, forked analysis JVMs do not suspend and wait for a debugger to attach.
 * \<Y\> is the maximum amount of time in seconds to execute a single input during analysis or -1 if no timeout should be
   used. By default, a timeout value of 600 seconds is used.
-* The presence of -Dpomelo.fuzz.quiet indicates that the standard output and error of the forked fuzzing campaign JVMs
-  should be discarded. By default, the standard output and error of the forked fuzzing campaign JVMs is redirected to
-  the standard out and error of the Maven process.
 * \<F\> is a list of JaCoCo report formats to be generated. The formats XML, HTML, CSV are supported. By default, all
   formats are generated.
 

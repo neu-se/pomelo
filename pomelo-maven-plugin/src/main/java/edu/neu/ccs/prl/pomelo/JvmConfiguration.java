@@ -38,7 +38,8 @@ public class JvmConfiguration {
         this.enableAssertions = enableAssertions;
         this.rawWorkingDirectory = workingDirectory;
         this.rawSystemProperties = rawSystemProperties;
-        this.rawArgLine = interpolatePropertyExpressions(argLine, modelProperties).replaceAll("\\s", " ");
+        this.rawArgLine = interpolatePropertyExpressions(argLine, modelProperties)
+                .replaceAll("\\s", " ");
         this.javaExecutable = jdkAttributes.getJvmExecutable();
         this.testClasspathElements = Collections.unmodifiableList(
                 testClasspath.getClassPath().stream().map(File::new).collect(Collectors.toList()));
@@ -131,7 +132,7 @@ public class JvmConfiguration {
         return result;
     }
 
-    private static Map<String, String> createEnvironment(Map<String, String> environmentVariables,
+    public static Map<String, String> createEnvironment(Map<String, String> environmentVariables,
                                                          String[] excludedEnvironmentVariables) {
         Commandline cli = new Commandline(excludedEnvironmentVariables);
         for (Map.Entry<String, String> entry : environmentVariables.entrySet()) {

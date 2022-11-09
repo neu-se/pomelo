@@ -31,7 +31,7 @@ public final class PomeloReplayer implements Replayer {
     @Override
     public void accept(ReplayerManager manager) throws Throwable {
         try {
-            FuzzForkMain.run(testClassName, testMethodName, new ReplayGuidance(manager), testClassLoader);
+            FuzzForkMain.run(testClassName, testMethodName, testClassLoader, new ReplayGuidance(manager));
         } catch (Throwable t) {
             t.printStackTrace();
             throw t;

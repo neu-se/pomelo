@@ -1,7 +1,7 @@
 package edu.neu.ccs.prl.pomelo;
 
+import edu.neu.ccs.prl.meringue.SystemPropertyUtil;
 import edu.neu.ccs.prl.pomelo.util.FileUtil;
-import edu.neu.ccs.prl.pomelo.util.SystemPropertyUtil;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;

@@ -18,19 +18,8 @@
             <artifactId>meringue-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>edu.berkeley.cs.jqf</groupId>
-            <artifactId>jqf-fuzz</artifactId>
-            <version>1.7</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.jacoco</groupId>
-                    <artifactId>org.jacoco.report</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.jacoco</groupId>
-                    <artifactId>org.jacoco.core</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>edu.neu.ccs.prl.meringue</groupId>
+            <artifactId>meringue-zest-extension</artifactId>
         </dependency>
     </dependencies>
     <build>
